@@ -1,0 +1,102 @@
+{% extends 'model-page.html'%}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+<div class="redenc mb-3 d-flex align-items-center">
+  <img src="{% static 'images/nc_bw.png' %}" alt="Imagem" style="width: 100px; height: auto; margin-right: 10px;">
+  <div class="mx-auto text-center">
+    <h1 class="mb-0">PROCESSO XX/2024</h1>
+    <h2>CONSULTOR(A): {{request.user.first_name}} {{request.user.last_name}}</h2> | Polo: {{request.user.polo}}
+    <!-- Outro conteúdo aqui, se necessário -->
+  </div>
+</div>
+
+<h1>MATRICULAS</h1>
+  <a href="{% url 'matriculas:matriculas_new' %}"
+    <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px;">Nova Matricula</button>
+  </a>
+<form>
+  <div class="form-group mb-1">
+    <input class="form-control" type="text" name="name" placeholder="Buscar por nome ...">
+  </div>
+  <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
+
+<table class="table table table-striped mt-4">
+    <thead>
+        <tr>
+          <th scope="col">DATA</th>
+          <th scope="col">NOME DO ALUNO</th>
+          <th scope="col">RA</th>
+          <th scope="col">CURSO</th>
+          <th scope="col">TIPO DE CURSO</th>
+          <th scope="col">CAMPANHA</th>
+          <th scope="col">VALOR 1 MENSALIDADE</th>
+          <th scope="col">% BOLSA POLO</th>
+          <th scope="col">% DESCONTO TOTAL</th>
+          <th scope="col">EDITAR</th>
+          <th scope="col">EXCLUIR</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for matriculas in matriculas_list %}
+          <tr>
+            <td>{{matriculas.get_data_matricula}}</td>
+            <td>{{matriculas.nome_aluno}}</td>
+            <td>{{matriculas.numero_ra}}</td>
+            <td>{{matriculas.curso}}</td>
+            <td>{{matriculas.tipo_curso}}</td>
+            <td>{{matriculas.campanha}}</td>
+            <td>{{matriculas.valor_mensalidade}}</td>
+            <td>{{matriculas.desconto_polo}}</td>
+            <td>{{matriculas.desconto_total}}</td>
+            <td><a href = "{{ matriculas.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></td>
+            <form method="POST" action="{{ matriculas.get_delete_url }}">{% csrf_token %}
+              <td><button type="submit" class="btn btn-danger">Excluir</button></td>
+            </form>
+            </tr>
+          </tr>
+        {% endfor %}
+      </tbody>
+    
+  </table>
+
+
+
+  <ul class="pagination">
+  {%if  page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+  {% else %}
+    <li class="page-item disabled">
+      <a class="page-link" href="#" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+  {% endif %}
+
+  {% for object in page_obj.paginator.page_range %}
+    <li class="page-item"><a class="page-link" href="?page={{ forloop.counter }}">{{ forloop.counter }}</a></li>
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page= {{ page_obj.next_page_number }}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  {% else %}
+    <li class="page-item disabled">
+      <a class="page-link" href="#" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  {% endif %}
+  </ul>
+
+
+{% endblock %}

@@ -1,0 +1,56 @@
+.bolinha {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  .verde {
+    background-color: green;
+  }
+
+  .amarelo {
+    background-color: yellow;
+  }
+
+  .vermelho {
+    background-color: red;
+  }
+
+  .nunca {
+    background-color: gray;
+  }
+
+  .status-col {
+    width: fit-content;
+  }
+
+  .redenc {
+    background-color: #032244; /* Cor de fundo azul */
+    color: #FFFFFF; /* Cor do texto branca */
+    text-align: center; /* Centraliza o texto */
+    padding: 20px; /* Adiciona algum preenchimento para melhor aparência */
+}
+
+  .tabela-numeracao th,
+  .tabela-numeracao td {
+    width: 50px; /* Ajuste a largura conforme necessário */
+}
+
+  .w-10 {
+    width: 3% !important; /* ou ajuste conforme necessário */
+    text-align: center;
+  }
+  .w-15 {
+    width: 10% !important; /* ou ajuste conforme necessário */
+    text-align: center;
+  }
+
+
+  .cabtabela {
+    background-color: #545557; /* Cor de fundo azul */
+    color: #FFFFFF; /* Cor do texto branca */
+    text-align: center; /* Centraliza o texto */
+    padding: 20px; /* Adiciona algum preenchimento para melhor aparência */
+}

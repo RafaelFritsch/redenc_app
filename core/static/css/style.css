@@ -38,9 +38,17 @@
     width: 50px; /* Ajuste a largura conforme necessário */
 }
 
+
+
   .w-10 {
     width: 3% !important; /* ou ajuste conforme necessário */
     text-align: center;
+  }
+
+  .w-11 {
+    width: 3% !important; /* ou ajuste conforme necessário */
+    text-align: center;
+    font-size: 14px;
   }
   .w-15 {
     width: 10% !important; /* ou ajuste conforme necessário */
@@ -54,3 +62,15 @@
     text-align: center; /* Centraliza o texto */
     padding: 20px; /* Adiciona algum preenchimento para melhor aparência */
 }
+
+/* Classe personalizada para inclinar o texto em 90 graus */
+  .rotate-text {
+    transform: rotate(-90deg);
+    white-space: nowrap; /* Impede que o texto quebre em várias linhas */
+  }
+
+/* Classe personalizada para tamanho de coluna personalizado */
+  .col-custom {
+    width: 5px; /* Defina o tamanho desejado em pixels ou outra unidade */
+    align-items: flex-end;
+  }

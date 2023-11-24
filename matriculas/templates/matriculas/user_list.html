@@ -6,35 +6,34 @@
 <a href="{% url 'matriculas:user_new' %}"
     <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px">Novo Consultor</button>
   </a>
-<table class="table table-bordered">
+
+  <table class="table">
     <thead>
         <tr>
-          <th scope="col">Nome</th>
-          <th scope="col">Usuário</th>
-          <th scope="col">Email</th>
-          <th scope="col">Active</th>
-          <th scope="col">Ultimo Login</th>
-          <!-- <th scope="col">EDITAR</th>
-          <th scope="col">EXCLUIR</th> -->
+            <th>Nome</th>
+            <th>usuário</th>
+            <th>Email</th>
+            <th>Polo</th>
         </tr>
-      </thead>
-      <tbody>
+    </thead>
+    <tbody>
         {% for user in user_list %}
-          <tr>
-            <td>{{user.first_name}} {{user.last_name}}</td>
-            <td>{{user.username}}</td>
-            <td>{{user.email}}</td>
-            <td>{{user.is_active}}</td>
-            <td>{{user.last_login}}</td>
-            <!-- <td><a href = "{{ form.UserForm.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></a></td>
-            <form method="POST" action="{{ consultor.get_delete_url }}">{% csrf_token %}
-              <td><button type="submit" class="btn btn-danger">Excluir</button></td>
-            </form> -->
-          </tr>
+            <tr>
+                <td>{{ user.first_name }} {{ user.last_name }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% if user.userprofile %}
+                        {{ user.userprofile.polo.nome }}
+                    {% else %}
+                        Sem polo vinculado
+                    {% endif %}
+                </td>
+            </tr>
         {% endfor %}
-      </tbody>
-    
-  </table>
+    </tbody>
+</table>
+
 
 
   <ul class="pagination">

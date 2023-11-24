@@ -5,7 +5,7 @@ from .models import Matriculas,Consultor,cad_campanhas,cad_cursos,cad_polos,tipo
 # Register your models here.
 
 class MatriculasAdmin(admin.ModelAdmin):
-    list_display = ('id', 'numero_concurso', 'ano_concurso', 'data_matricula', 'nome_aluno', 'numero_ra', 'curso', 'tipo_curso', 'campanha', 'create_date', 'update_date', 'active' )
+    list_display = ('id','data_matricula', 'nome_aluno', 'numero_ra', 'curso', 'tipo_curso', 'campanha', 'create_date', 'update_date', 'active', 'processo_sel' )
     list_filter = ('nome_aluno', 'numero_ra', 'curso', 'tipo_curso', 'campanha', 'create_date', 'update_date', 'active') # Criar filtros
 
 admin.site.register(Matriculas, MatriculasAdmin)

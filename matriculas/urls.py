@@ -15,6 +15,7 @@ urlpatterns = [
     path('curso/', CursoListView.as_view(), name='curso_list'),
     path('tipocurso/', TipoCursoListView.as_view(), name='tipo_curso_list'),
     path('polo/', PoloListView.as_view(), name='polo_list'),
+    path('processo/', ProcessoListView.as_view(), name='processo_list'),
     
     #NewView
     path('', MatriculasNewView.as_view(), name='matriculas_new'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('curso/novo', CursosNewView.as_view(), name='cursos_new'),
     path('tipocurso/novo', TipoCursoNewView.as_view(), name='tipo_curso_new'),
     path('campanhas/novo', CampanhaNewView.as_view(), name='campanha_new'),
+    path('processo/novo', ProcessoNewView.as_view(), name='processo_new'),
     
     #UpdateView
     path('<int:id>/', MatriculasUpdateView.as_view(), name='matriculas_update'),
@@ -33,6 +35,7 @@ urlpatterns = [
     path('curso/<int:id>', CursoUpdateView.as_view(), name='curso_update'),
     path('tipocurso/<int:id>', TipoCursoUpdateView.as_view(), name='tipo_curso_update'),
     path('polo/<int:id>', PoloUpdateView.as_view(), name='polo_update'),
+    path('processo/<int:id>', ProcessoUpdateView.as_view(), name='processo_update'),
     
     #DeleteView
     path('<int:id>/delete', MatriculasDeleteView.as_view(), name='matriculas_delete'),
@@ -41,6 +44,7 @@ urlpatterns = [
     path('curso/<int:id>/delete', CursoDeleteView.as_view(), name='curso_delete'),
     path('tipocurso/<int:id>/delete', TipoCursoDeleteView.as_view(), name='tipo_curso_delete'),
     path('polo/<int:id>/delete', PoloDeleteView.as_view(), name='polo_delete'),
+    path('processo/<int:id>/delete', ProcessoDeleteView.as_view(), name='processo_delete'),
     
     #Consultas
     path('consulta/', RankView, name= "user_rank" )

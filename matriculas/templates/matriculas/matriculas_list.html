@@ -2,65 +2,100 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-<div class="redenc mb-3 d-flex align-items-center">
-  <img src="{% static 'images/nc_bw.png' %}" alt="Imagem" style="width: 100px; height: auto; margin-right: 10px;">
-  <div class="mx-auto text-center">
-    <h1 class="mb-0">PROCESSO XX/2024</h1>
-    <h2>CONSULTOR(A): {{request.user.first_name}} {{request.user.last_name}}</h2> | Polo: {{request.user.polo}}
-    <!-- Outro conteúdo aqui, se necessário -->
-  </div>
-</div>
 
-<h1>MATRICULAS</h1>
-  <a href="{% url 'matriculas:matriculas_new' %}"
-    <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px;">Nova Matricula</button>
-  </a>
-<form>
-  <div class="form-group mb-1">
-    <input class="form-control" type="text" name="name" placeholder="Buscar por nome ...">
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+
+
+  <div class="redenc mb-3 d-flex  align-items-center ">
+    <img src="{% static 'images/fraseforca.png' %}" alt="Imagem" style="width: auto; height: 60px; margin-right: 10px;">
+    <div class="mx-auto align-items-center">
+      <div class="d-flex mx-auto">
+        <h1>PROCESSO</h1> <h1 class="text-primary ms-2">XX/2024</h1>
+      </div>
+        <div class="d-flex mx-auto">
+          <h4>CONSULTOR(A):</h4>
+          <h4 class="text-warning ms-2">{{ request.user.first_name }} {{ request.user.last_name }}</h4> 
+          {% if request.user.userprofile %}
+            <h4 class="ms-2">| Polo: </h4>
+            <h4 class="text-warning ms-2">{{ request.user.userprofile.polo }}</h4>
+          {% endif %}
+        </div>
+
+    </div>
+    <div class="align-items-right">
+      <img src="{% static 'images/foguete2.png' %}" alt="Imagem" style="width: auto; height: 100px; margin-right: 10px;">
+    </div>
   </div>
-  <button type="submit" class="btn btn-primary">Buscar</button>
+
+<!--   <a href="{% url 'matriculas:matriculas_new' %}"
+    <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px;">Nova Matricula</button>
+  </a> -->
+
+
+<form>
+  <div class="d-flex align-items-center">
+    <div class="p-2 flex-grow-1">
+      <input class="form-control" type="text" name="name" placeholder="Buscar por nome ...">
+    </div>
+    <div class="p2">
+      <button type="submit" class="btn btn-primary">Buscar</button>
+    </div>  
+  </div>
 </form>
 
-<table class="table table table-striped mt-4">
+<table class="table table-striped mt-4">
     <thead>
         <tr>
-          <th scope="col">DATA</th>
-          <th scope="col">NOME DO ALUNO</th>
-          <th scope="col">RA</th>
-          <th scope="col">CURSO</th>
-          <th scope="col">TIPO DE CURSO</th>
-          <th scope="col">CAMPANHA</th>
-          <th scope="col">VALOR 1 MENSALIDADE</th>
-          <th scope="col">% BOLSA POLO</th>
-          <th scope="col">% DESCONTO TOTAL</th>
-          <th scope="col">EDITAR</th>
-          <th scope="col">EXCLUIR</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">DATA</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">NOME DO ALUNO</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">RA</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">CURSO</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">TIPO DE CURSO</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">CAMPANHA</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">VALOR 1 MENSALIDADE</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">% BOLSA POLO</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">% DESCONTO TOTAL</th>
+          <th class="bg-secondary"></th>
+
         </tr>
       </thead>
       <tbody>
         {% for matriculas in matriculas_list %}
           <tr>
-            <td>{{matriculas.get_data_matricula}}</td>
-            <td>{{matriculas.nome_aluno}}</td>
-            <td>{{matriculas.numero_ra}}</td>
-            <td>{{matriculas.curso}}</td>
-            <td>{{matriculas.tipo_curso}}</td>
-            <td>{{matriculas.campanha}}</td>
-            <td>{{matriculas.valor_mensalidade}}</td>
-            <td>{{matriculas.desconto_polo}}</td>
-            <td>{{matriculas.desconto_total}}</td>
-            <td><a href = "{{ matriculas.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></td>
-            <form method="POST" action="{{ matriculas.get_delete_url }}">{% csrf_token %}
-              <td><button type="submit" class="btn btn-danger">Excluir</button></td>
-            </form>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.get_data_matricula}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.nome_aluno}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.numero_ra}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.curso}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.tipo_curso}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.campanha}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.valor_mensalidade}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.desconto_polo}}</td>
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.desconto_total}}</td>
+            <td class="text-center w-11">
+              <div class="d-flex justify-content-center align-items-center">
+                <a href = "{{ matriculas.get_absolute_url }}">
+                  <img src="{% static 'images/edit.png' %}" alt="EDITAR" style="width: 24px; height: auto;">
+                </a>
+              
+                <form method="POST" action="{{ matriculas.get_delete_url }}">
+                  {% csrf_token %}
+                
+                    <button type="submit" class="btn btn-link text-center">
+                      <img src="{% static 'images/trash.png' %}" alt="EXCLUIR" style="width: 24px; height: auto;">
+                    </button>
+                </form>
+              
+            </td>
             </tr>
           </tr>
         {% endfor %}
-      </tbody>
-    
+      </tbody> 
   </table>
+
+
+
+  
 
 
 

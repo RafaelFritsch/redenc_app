@@ -1,25 +1,17 @@
 from django import forms
-from django.forms import ModelForm
-from .models import Matriculas, Consultor, cad_campanhas, cad_cursos, cad_polos, tipo_curso
-from django import forms
+from django.forms import ModelForm, ModelChoiceField
+from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from datetime import datetime
 
 class DateInput(forms.DateInput):
     input_type = 'date'
 
-NUMERO_CONCURSO_CHOICES = (
-    (51, '51'),
-    (52, '52'),
-    (53, '53'),
-    (54, '54'),
 
-)
 
 class MatriculasForm(forms.ModelForm):
-    numero_concurso = forms.CharField(widget=forms.Select(choices=NUMERO_CONCURSO_CHOICES))
-    ano_concurso = forms.IntegerField()
-    data_matricula = forms.DateTimeField()
+    data_matricula = forms.DateTimeField(widget=DateInput())
     nome_aluno = forms.CharField()
     numero_ra = forms.CharField(label='RA', required=False)
     curso = forms.ModelChoiceField(queryset=cad_cursos.objects.all())
@@ -28,13 +20,22 @@ class MatriculasForm(forms.ModelForm):
     valor_mensalidade = forms.DecimalField()
     desconto_polo = forms.DecimalField()
     desconto_total = forms.DecimalField()
+    processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.all())
 
+    
+    processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.all(), widget=forms.Select(attrs={'class': 'selectpicker'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['processo_sel'].label_from_instance = self.label_from_instance
+
+    def label_from_instance(self, obj):
+        return f"{obj.numero_processo} / {obj.ano_processo}"
 
     class Meta:
         model = Matriculas
         fields = (
-            'numero_concurso',
-            'ano_concurso',
+            'processo_sel',
             'data_matricula',
             'nome_aluno',
             'numero_ra',
@@ -44,6 +45,7 @@ class MatriculasForm(forms.ModelForm):
             'valor_mensalidade',
             'desconto_polo',
             'desconto_total',
+            
 
         )
         
@@ -161,12 +163,57 @@ class CampanhaForm(forms.ModelForm):
         )
         
 class UserForm(UserCreationForm):
-    email = forms.EmailField(max_length=254, help_text='Required. Inform a valid email address.')
-    
+    polo = forms.ModelChoiceField(queryset=cad_polos.objects.all())
     class Meta:
-        model = User
-        fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2')
-        
+         model = User
+         fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2')
+         
+
     
     def get_absolute_url(self):
         return reverse("matriculas:user_update", kwargs={'id': self.id}) #Direciona para a url de edição
+    
+
+
+class CustomUserCreationForm(UserCreationForm):
+   
+    polo = forms.ModelChoiceField(queryset=cad_polos.objects.all(), required=False)
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email','username', 'password1', 'password2', 'polo')
+        
+    
+NUMERO_PROC_CHOICES = (
+    (51, '51'),
+    (52, '52'),
+    (53, '53'),
+    (54, '54'),
+
+    )   
+    
+              
+class ProcessoForm(forms.ModelForm):
+    numero_processo = forms.CharField(widget=forms.Select(choices=NUMERO_PROC_CHOICES))
+    ano_processo = forms.IntegerField()
+    data_inicial_processo = forms.DateTimeField(widget=DateInput())
+    data_final_processo = forms.DateTimeField(widget=DateInput())
+    ativo = forms.BooleanField()
+    
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['ano_processo'].initial = datetime.now().year
+        self.fields['ativo'].initial = True
+    
+    class Meta:
+        model = cad_processo
+        fields = (
+            'numero_processo',
+            'ano_processo',
+            'data_inicial_processo',
+            'data_final_processo',
+            'ativo',
+        )
+    

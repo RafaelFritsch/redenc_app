@@ -2,8 +2,8 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.db.models import Count
-import django_filters
-from django.contrib.auth.models import AbstractUser
+
+
 
 # Create your models here.
 
@@ -78,7 +78,7 @@ class cad_polos(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
-        # Relação ManyToManyField com o modelUser
+    users = models.ManyToManyField(User, related_name='polos')
     
     
     class Meta:
@@ -171,18 +171,46 @@ class tipo_curso(models.Model):
 
 
 
-NUMERO_CONCURSO_CHOICES = (
-    (51, '51'),
-    (52, '52'),
-    (53, '53'),
-    (54, '54'),
 
-)
+    
 
+
+#Adicionar o campo polo no cadastro do usuario    
+#
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    polo = models.ForeignKey(cad_polos, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    def __str__(self):
+        return self.user.username
+    
+    
+
+class cad_processo(models.Model):
+    
+    numero_processo =  models.CharField(max_length=2)
+    ano_processo = models.CharField(max_length=4)
+    data_inicial_processo = models.DateTimeField()
+    data_final_processo = models.DateTimeField()
+    ativo = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'processo'
+        
+    def __str__(self):
+        return self.numero_processo 
+    def get_data_inicial(self):
+        return self.data_inicial_processo.strftime('%d/%m/%Y')
+    def get_data_final(self):
+        return self.data_final_processo.strftime('%d/%m/%Y')
+    def get_absolute_url(self):
+        return reverse("matriculas:processo_update", kwargs={'id': self.id}) #Direciona para a url de edição
+    def get_delete_url(self):
+        return reverse("matriculas:processo_delete", kwargs={'id': self.id})# Exclui o resgistro
+    
+    
 class Matriculas(models.Model):
     id = models.AutoField(primary_key=True)
-    numero_concurso = models.IntegerField(null=True, choices=NUMERO_CONCURSO_CHOICES)
-    ano_concurso = models.IntegerField(null=True)
     data_matricula = models.DateTimeField()
     nome_aluno = models.CharField(max_length=200)
     numero_ra = models.CharField(max_length=12)
@@ -198,14 +226,15 @@ class Matriculas(models.Model):
     comprovante = models.ImageField(upload_to='comprovantes/', blank=True, null=True)
     active = models.BooleanField(default=True)
     usuario = models.ForeignKey(User, on_delete=models.PROTECT)
-   
+    processo_sel = models.ForeignKey(cad_processo, on_delete=models.CASCADE)
    
     
     class Meta:
         db_table = 'matricula'
         
     def __str__(self):
-        return self.nome_aluno
+        #return self.nome_aluno
+        return f"{self.processo_sel.numero_processo} - {self.processo_sel.ano_processo} - {self.nome_aluno}"
     
     def get_data_matricula(self):
         return self.data_matricula.strftime('%d/%m/%Y')
@@ -215,14 +244,3 @@ class Matriculas(models.Model):
     
     def get_delete_url(self):
         return reverse("matriculas:matriculas_delete", kwargs={'id': self.id})# Exclui o resgistro
-    
-
-""" class CustomUser(AbstractUser):
-    # Adicione seus campos personalizados aqui
-    polo = models.ManyToManyField(cad_polos, blank=True)
-    birthday = models.DateField(null=True, blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
-    # Adicione outros campos conforme necessário
-
-    def __str__(self):
-        return self.username """

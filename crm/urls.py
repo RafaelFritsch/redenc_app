@@ -21,6 +21,9 @@ from django.contrib.auth.decorators import login_required
 from core import views
 from django.contrib.auth import views as auth_views
 from matriculas.views import *
+from django.conf.urls.static import static
+from django.conf import settings
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,3 +36,5 @@ urlpatterns = [
     path('matriculas/', include('matriculas.urls')), 
 
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

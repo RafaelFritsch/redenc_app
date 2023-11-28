@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,8 +41,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     "crispy_bootstrap5",
     'matriculas',
-    'django_filters',
-    'core'
+    'core',
+    'smart_selects',
 ]
 
 MIDDLEWARE = [
@@ -124,6 +125,11 @@ STATIC_URL = 'static/'
 
 LOGIN_URL = '/login/'
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+
+MEDIA_URL = '/media/'
+
+# FILE_UPLOAD_MAX_MEMORY_SIZE = # Ajusta o tamanho máximo de arquivo em memoria
 
 #Carregou o css sem a necessidade de ativar o opcao abaixo
 #STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -136,4 +142,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+USE_DJANGO_JQUERY = True
+
+
 

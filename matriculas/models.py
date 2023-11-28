@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.db.models import Count
+from smart_selects.db_fields import ChainedForeignKey
 
 
 
@@ -96,54 +97,6 @@ class cad_polos(models.Model):
     def get_delete_url(self):
         return reverse("matriculas:polo_delete", kwargs={'id': self.id})# Exclui o resgistro
 
-class cad_cursos(models.Model):
-    nome = models.CharField(max_length=100)
-    create_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
-    active = models.BooleanField(default=True)
-    
-    class Meta:
-        db_table = 'cursos'
-        
-    def __str__(self):
-        return self.nome
-    
-    def get_data_create_curso(self):
-        return self.create_date.strftime('%d/%m/%Y')
-    
-    def get_data_update_curso(self):
-        return self.update_date.strftime('%d/%m/%Y')
-    
-    def get_absolute_url(self):
-        return reverse("matriculas:curso_update", kwargs={'id': self.id}) #Direciona para a url de edição
-    
-    def get_delete_url(self):
-        return reverse("matriculas:curso_delete", kwargs={'id': self.id})# Exclui o resgistro
-
-class cad_campanhas(models.Model):
-    nome = models.CharField(max_length=100)
-    create_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
-    active = models.BooleanField(default=True)
-    
-    class Meta:
-        db_table = 'campanhas'
-        
-    def __str__(self):
-        return self.nome
-    
-    def get_data_create_camp(self):
-        return self.create_date.strftime('%d/%m/%Y')
-    
-    def get_data_update_camp(self):
-        return self.update_date.strftime('%d/%m/%Y')
-    
-    def get_absolute_url(self):
-        return reverse("matriculas:campanha_update", kwargs={'id': self.id}) #Direciona para a url de edição
-    
-    def get_delete_url(self):
-        return reverse("matriculas:campanha_delete", kwargs={'id': self.id})# Exclui o resgistro
-    
 class tipo_curso(models.Model):
     nome = models.CharField(max_length=100)
     pontos = models.IntegerField()
@@ -168,6 +121,59 @@ class tipo_curso(models.Model):
     
     def get_delete_url(self):
         return reverse("matriculas:tipo_curso_delete", kwargs={'id': self.id})# Exclui o resgistro
+
+
+class cad_cursos(models.Model):
+    nome = models.CharField(max_length=100)
+    tipo_curso = models.ForeignKey(tipo_curso, on_delete=models.CASCADE)
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'cursos'
+        
+    def __str__(self):
+        return self.nome
+    
+    def get_data_create_curso(self):
+        return self.create_date.strftime('%d/%m/%Y')
+    
+    def get_data_update_curso(self):
+        return self.update_date.strftime('%d/%m/%Y')
+    
+    def get_absolute_url(self):
+        return reverse("matriculas:curso_update", kwargs={'id': self.id}) #Direciona para a url de edição
+    
+    def get_delete_url(self):
+        return reverse("matriculas:curso_delete", kwargs={'id': self.id})# Exclui o resgistro
+
+class cad_campanhas(models.Model):
+    nome = models.CharField(max_length=100)
+    data_inicio = models.DateTimeField()
+    data_fim = models.DateTimeField()
+    create_date = models.DateTimeField(auto_now_add=True)
+    update_date = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'campanhas'
+        
+    def __str__(self):
+        return self.nome
+    
+    def get_data_inicio_camp(self):
+        return self.data_inicio.strftime('%d/%m/%Y')
+    
+    def get_data_fim_camp(self):
+        return self.update_date.strftime('%d/%m/%Y')
+    
+    def get_absolute_url(self):
+        return reverse("matriculas:campanha_update", kwargs={'id': self.id}) #Direciona para a url de edição
+    
+    def get_delete_url(self):
+        return reverse("matriculas:campanha_delete", kwargs={'id': self.id})# Exclui o resgistro
+    
 
 
 
@@ -214,8 +220,13 @@ class Matriculas(models.Model):
     data_matricula = models.DateTimeField()
     nome_aluno = models.CharField(max_length=200)
     numero_ra = models.CharField(max_length=12)
-    curso = models.ForeignKey(cad_cursos, on_delete=models.CASCADE)
     tipo_curso = models.ForeignKey(tipo_curso, on_delete=models.CASCADE)
+    curso = ChainedForeignKey(cad_cursos, on_delete=models.CASCADE,
+                                chained_field="tipo_curso",
+                                chained_model_field="tipo_curso",
+                                show_all=False,
+                                auto_choose=True,
+                                sort=True)
     campanha = models.ForeignKey(cad_campanhas, on_delete=models.CASCADE) 
     valor_mensalidade = models.DecimalField(max_digits=10, decimal_places=2)
     desconto_polo = models.DecimalField(max_digits=4, decimal_places=2)
@@ -227,8 +238,9 @@ class Matriculas(models.Model):
     active = models.BooleanField(default=True)
     usuario = models.ForeignKey(User, on_delete=models.PROTECT)
     processo_sel = models.ForeignKey(cad_processo, on_delete=models.CASCADE)
+    arquivos = models.FileField(upload_to='arquivos_matricula/', blank=True, null=True)
    
-    
+            
     class Meta:
         db_table = 'matricula'
         
@@ -244,3 +256,12 @@ class Matriculas(models.Model):
     
     def get_delete_url(self):
         return reverse("matriculas:matriculas_delete", kwargs={'id': self.id})# Exclui o resgistro
+    
+    def delete(self, *args, **kwargs):
+        # Excluir arquivos associados antes de chamar o método delete da superclasse
+        if self.comprovante:
+            self.comprovante.delete()
+        if self.arquivos:
+            self.arquivos.delete()
+
+        super().delete(*args, **kwargs)

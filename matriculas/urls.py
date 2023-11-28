@@ -1,11 +1,22 @@
-from django.urls import path
+from django.urls import path, include
 from .views import *
+#from django.conf.urls.static import static
+from django.conf import settings
 
-from . import views
+from smart_selects import *
+
+try:
+    from django.conf.urls.defaults import url
+except ImportError:
+    from django.urls import  re_path as url
 
 
 app_name = "matriculas"
 urlpatterns = [
+    
+    
+    url(r'^chaining/', include('smart_selects.urls')),
+    
     
     ##ListView
     path('list/', MatriculasListView.as_view(), name='matriculas_list'),
@@ -16,6 +27,7 @@ urlpatterns = [
     path('tipocurso/', TipoCursoListView.as_view(), name='tipo_curso_list'),
     path('polo/', PoloListView.as_view(), name='polo_list'),
     path('processo/', ProcessoListView.as_view(), name='processo_list'),
+    path('file/<int:pk>/', MatriculaFileView.as_view(), name='matricula_file'), #Mostra o arquivo da matrícula
     
     #NewView
     path('', MatriculasNewView.as_view(), name='matriculas_new'),
@@ -47,9 +59,9 @@ urlpatterns = [
     path('processo/<int:id>/delete', ProcessoDeleteView.as_view(), name='processo_delete'),
     
     #Consultas
-    path('consulta/', RankView, name= "user_rank" )
-  
-    
-    
+    path('consulta/', RankView, name= "user_rank" ),
+   
+ 
     
 ]
+

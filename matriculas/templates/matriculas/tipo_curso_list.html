@@ -11,8 +11,8 @@
         <tr>
           <th scope="col">Nome</th>
           <th scope="col">Pontos</th>
-          <th scope="col">Data Criação</th>
-          <th scope="col">Data Atualização</th>
+<!--           <th scope="col">Data Criação</th>
+          <th scope="col">Data Atualização</th> -->
           <th scope="col">Ativo</th>
           <th scope="col">EDITAR</th>
           <th scope="col">EXCLUIR</th>
@@ -23,8 +23,8 @@
           <tr>
             <td>{{tipo_curso.nome}}</td>
             <td>{{tipo_curso.pontos}}</td>
-            <td>{{tipo_curso.get_data_create_tp}}</td>
-            <td>{{tipo_curso.get_data_update_tp}}</td>
+ <!--       <td>{{tipo_curso.get_data_create_tp}}</td>
+            <td>{{tipo_curso.get_data_update_tp}}</td> -->
             <td>{{tipo_curso.active}}</td>
             <td><a href = "{{ tipo_curso.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></td>
               <form method="POST" action="{{ tipo_curso.get_delete_url }}">{% csrf_token %}

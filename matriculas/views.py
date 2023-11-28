@@ -16,7 +16,9 @@ from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django import forms
 from django.db.models.functions import TruncMonth
-
+import os
+from django.http import FileResponse
+from django.http import JsonResponse
 
 
 
@@ -39,6 +41,21 @@ class MatriculasListView(LoginRequiredMixin, ListView):
             object_list = self.model.objects.all().filter(usuario=self.request.user).order_by('-data_matricula') # Vizualiza somente os registros que o user criou
         return object_list
     
+    
+class MatriculaFileView(View):
+    model = Matriculas
+
+    def get(self, request, pk, *args, **kwargs):
+        matricula = get_object_or_404(self.model, pk=pk)
+        file_path = matricula.arquivos.path
+
+        if os.path.exists(file_path):
+            with open(file_path, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type="application/octet-stream")
+                response['Content-Disposition'] = f'inline; filename={os.path.basename(file_path)}'
+                return response
+        else:
+            raise Http404
     
 
 ## Listar Users 
@@ -91,6 +108,9 @@ class MatriculasNewView(LoginRequiredMixin,CreateView):  # Criar novo registro
     template_name = 'matriculas/matriculas_new.html'
     form_class = MatriculasForm
     
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()  # TODO:  AJUSTAR NÃO ESTÁ FILTRANDO O CURSO POR TIPO
+        return render(request, self.template_name, {'form': form})
     def form_valid(self, form):
         form.instance.usuario = self.request.user
         return super().form_valid(form)
@@ -307,13 +327,68 @@ class ProcessoUpdateView(UpdateView):
 
 # DELETE VIEWS ######################################################
 
-class MatriculasDeleteView(DeleteView):
+class MatriculasDeleteView(DeleteView): 
+    model = Matriculas
+    template_name = 'matriculas/matriculas_delete.html'
+
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(Matriculas, id=id)
-    
+
     def get_success_url(self):
-        return reverse('matriculas:matriculas_list')
+        success_url = reverse('matriculas:matriculas_list')
+        return success_url
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Verifica se o arquivo deve ser excluído
+        excluir_arquivo = request.POST.get('excluir_arquivo')
+        print(f"Excluir arquivo: {excluir_arquivo}")
+
+        # Verifica se o valor de excluir_arquivo é 'True' (uma string)
+        if excluir_arquivo == 'True' and self.object.comprovante:
+            print("Excluindo arquivo...")
+            print(f"Caminho do arquivo: {self.object.comprovante.path}")
+            self.object.comprovante.delete()
+
+        # Chama o método delete da superclasse
+        response = super().delete(request, *args, **kwargs)
+
+        # Retorna a URL de sucesso
+        return response
+
+
+
+
+
+
+
+# class MatriculasDeleteView(DeleteView):
+#     def get_object(self):
+#         id = self.kwargs.get('id')
+#         return get_object_or_404(Matriculas, id=id)
+    
+#     def get_success_url(self):
+#         return reverse('matriculas:matriculas_list') 
+    
+#     def delete(self, request, *args, **kwargs):
+#         # Chama o método get_success_url antes de excluir o objeto
+#         success_url = self.get_success_url()
+
+#         # Obtém a instância da matrícula
+#         matricula = self.get_object()
+
+#         # Verifica se o arquivo deve ser excluído
+#         excluir_arquivo = request.POST.get('excluir_arquivo')
+#         if excluir_arquivo == 'True' and matricula.comprovante:
+#             matricula.comprovante.delete()
+
+#         # Chama o método delete da superclasse
+#         response = super().delete(request, *args, **kwargs)
+
+#         # Retorna a URL de sucesso
+#         return response
 
 
 class ConsultorDeleteView(DeleteView):
@@ -420,5 +495,3 @@ def RankView(request):
 
 
 
-
-    

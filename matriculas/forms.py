@@ -4,9 +4,14 @@ from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from datetime import datetime
+from django.forms.widgets import ClearableFileInput
+
+
 
 class DateInput(forms.DateInput):
     input_type = 'date'
+    
+    
 
 
 
@@ -14,16 +19,18 @@ class MatriculasForm(forms.ModelForm):
     data_matricula = forms.DateTimeField(widget=DateInput())
     nome_aluno = forms.CharField()
     numero_ra = forms.CharField(label='RA', required=False)
-    curso = forms.ModelChoiceField(queryset=cad_cursos.objects.all())
+    #curso = forms.ModelChoiceField(queryset=cad_cursos.objects.all())
+    #tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
+    
     tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
+    curso = forms.ModelChoiceField(queryset=cad_cursos.objects.none())
+    
     campanha = forms.ModelChoiceField(queryset=cad_campanhas.objects.all()) 
     valor_mensalidade = forms.DecimalField()
     desconto_polo = forms.DecimalField()
     desconto_total = forms.DecimalField()
-    processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.all())
-
-    
     processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.all(), widget=forms.Select(attrs={'class': 'selectpicker'}))
+    arquivos = forms.FileField(label='Enviar Arquivos', required=False, widget=forms.ClearableFileInput())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,12 +46,13 @@ class MatriculasForm(forms.ModelForm):
             'data_matricula',
             'nome_aluno',
             'numero_ra',
-            'curso',
             'tipo_curso',
+            'curso',
             'campanha',
             'valor_mensalidade',
             'desconto_polo',
             'desconto_total',
+            'arquivos',
             
 
         )
@@ -128,12 +136,14 @@ class PoloForm(forms.ModelForm):
         
 class CursosForm(forms.ModelForm):
     nome = forms.CharField()
+    tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
     active = forms.BooleanField()
     
     class Meta:
         model = cad_cursos
         fields = (
             'nome',
+            'tipo_curso',
             'active',
         )
 
@@ -153,12 +163,16 @@ class TipoCursoForm(forms.ModelForm):
 
 class CampanhaForm(forms.ModelForm):
     nome = forms.CharField()
+    data_inicio = forms.DateField(widget=DateInput())
+    data_fim = forms.DateField(widget=DateInput())
     active = forms.BooleanField()
     
     class Meta:
         model = cad_campanhas
         fields = (
             'nome',
+            'data_inicio',
+            'data_fim',
             'active',
         )
         

@@ -1,9 +1,43 @@
-.custom-bg {
-    background: linear-gradient(to bottom, #3498db, #1a5276);
-}
+ /* Estilo para centralizar a div na tela */
+ .form-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* 100% da altura da tela */
+    border: solid 5px #299b66;
 
-.custom-form-container {
-    width: 50%; /* Ajuste a largura conforme necessário */
-    margin: auto; /* Centralize horizontalmente */
-    padding: 20px; /* Adicione algum preenchimento interno */
-}
+  }
+
+  /* Estilo para a div que envolve o formulário */
+  .form-container {
+    display: flexbox;
+    align-items: center;
+    justify-content: center;
+    width: 70%; /* Ajuste conforme necessário */
+    padding: 20px;
+    border: 10px solid #9b2929; /* Adiciona a borda */
+    border-radius: 10px; /* Cantos arredondados */
+    margin-left: 30px;
+    background-color: blue;
+    justify-content: center;
+
+  }
+
+  /* Estilos para organizar os campos em duas colunas */
+  .form-container .form-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60%; /* 48% para permitir algum espaço entre as colunas */
+    margin-bottom: 10px;
+  }
+
+  /* Estilo para o campo adicional na parte inferior */
+  .form-container .additional-field {
+    margin-top: 20px;
+  }
+
+  /* Estilo para o botão de envio */
+  .form-container .submit-button {
+    margin-top: 5px;
+  }

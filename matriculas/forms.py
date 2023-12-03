@@ -5,13 +5,42 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.forms.widgets import ClearableFileInput
+from dal import autocomplete
+from django.http import JsonResponse
 
 
 
 class DateInput(forms.DateInput):
     input_type = 'date'
     
+
+class CursosForm(forms.ModelForm):
+    nome = forms.CharField()
+    tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
+    active = forms.BooleanField()
     
+    class Meta:
+        model = cad_cursos
+        fields = (
+            'nome',
+            'tipo_curso',
+            'active',
+        )
+
+
+class TipoCursoForm(forms.ModelForm):
+    nome = forms.CharField()
+    pontos = forms.IntegerField()
+ 
+    
+    class Meta:
+        model = tipo_curso
+        fields = (
+            'nome',
+            'pontos',
+        )    
+
+
 
 
 
@@ -19,23 +48,15 @@ class MatriculasForm(forms.ModelForm):
     data_matricula = forms.DateTimeField(widget=DateInput())
     nome_aluno = forms.CharField()
     numero_ra = forms.CharField(label='RA', required=False)
-    #curso = forms.ModelChoiceField(queryset=cad_cursos.objects.all())
-    #tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
-    
     tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
-    curso = forms.ModelChoiceField(queryset=cad_cursos.objects.none())
-    
+    curso = forms.ModelChoiceField(queryset=cad_cursos.objects.all())
     campanha = forms.ModelChoiceField(queryset=cad_campanhas.objects.all()) 
     valor_mensalidade = forms.DecimalField()
     desconto_polo = forms.DecimalField()
     desconto_total = forms.DecimalField()
-    processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.all(), widget=forms.Select(attrs={'class': 'selectpicker'}))
-    arquivos = forms.FileField(label='Enviar Arquivos', required=False, widget=forms.ClearableFileInput())
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['processo_sel'].label_from_instance = self.label_from_instance
-
+    processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.filter(ativo=True), widget=forms.Select(attrs={'class': 'selectpicker'}), label='Processo Seletivo')
+    arquivos = forms.FileField(label='Enviar Comprovante', required=False, widget=forms.ClearableFileInput())
+    
     def label_from_instance(self, obj):
         return f"{obj.numero_processo} / {obj.ano_processo}"
 
@@ -53,9 +74,28 @@ class MatriculasForm(forms.ModelForm):
             'desconto_polo',
             'desconto_total',
             'arquivos',
-            
-
         )
+    def __init__(self, *args, **kwargs):
+        super(MatriculasForm, self).__init__(*args, **kwargs)
+        self.fields['processo_sel'].label_from_instance = self.label_from_instance
+        self.fields['curso'].queryset = cad_cursos.objects.none()  
+        self.fields['processo_sel'].widget.attrs['class'] = 'selectpicker'
+        self.fields['curso'].widget.attrs['data-live-search'] = True # Adicionar atributo data-live-search para habilitar a pesquisa em campos de seleção
+        
+        if 'tipo_curso' in self.data: # Filtrar opções do campo curso dinamicamente com base no tipo de curso
+            try:
+                tipo_curso_id = int(self.data.get('tipo_curso'))
+                self.fields['curso'].queryset = cad_cursos.objects.filter(tipo_curso_id=tipo_curso_id)
+            except (ValueError, TypeError):
+                pass      
+        
+        if 'instance' in kwargs:  ## carrega corretamentE os campos no update
+            instance = kwargs['instance']
+            if instance:
+                self.fields['tipo_curso'].queryset = tipo_curso.objects.filter(id=instance.tipo_curso.id)
+                self.fields['curso'].queryset = cad_cursos.objects.filter(tipo_curso_id=instance.tipo_curso.id)
+
+
         
 class ConsultorForm(forms.ModelForm):
     first_name = forms.CharField()
@@ -134,31 +174,7 @@ class PoloForm(forms.ModelForm):
             'active',
         )
         
-class CursosForm(forms.ModelForm):
-    nome = forms.CharField()
-    tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
-    active = forms.BooleanField()
-    
-    class Meta:
-        model = cad_cursos
-        fields = (
-            'nome',
-            'tipo_curso',
-            'active',
-        )
 
-
-class TipoCursoForm(forms.ModelForm):
-    nome = forms.CharField()
-    pontos = forms.IntegerField()
- 
-    
-    class Meta:
-        model = tipo_curso
-        fields = (
-            'nome',
-            'pontos',
-        )
         
 
 class CampanhaForm(forms.ModelForm):
@@ -212,7 +228,7 @@ class ProcessoForm(forms.ModelForm):
     ano_processo = forms.IntegerField()
     data_inicial_processo = forms.DateTimeField(widget=DateInput())
     data_final_processo = forms.DateTimeField(widget=DateInput())
-    ativo = forms.BooleanField()
+    ativo = forms.BooleanField(required=False)
     
     
     def __init__(self, *args, **kwargs):

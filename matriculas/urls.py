@@ -15,9 +15,6 @@ app_name = "matriculas"
 urlpatterns = [
     
     
-    url(r'^chaining/', include('smart_selects.urls')),
-    
-    
     ##ListView
     path('list/', MatriculasListView.as_view(), name='matriculas_list'),
     #path('consultores/', ConsultorListView.as_view(), name='consultor_list'),
@@ -60,6 +57,12 @@ urlpatterns = [
     
     #Consultas
     path('consulta/', RankView, name= "user_rank" ),
+    #path('filtrocursos/', FiltroCursos, name='filtrar_cursos'),
+    path('get_cursos/', get_cursos, name='get_cursos'),
+    path('processo_ativo', lista_processos, name='processo_ativo'),
+  
+    
+    
    
  
     

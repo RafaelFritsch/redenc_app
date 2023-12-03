@@ -18,14 +18,19 @@ from django import forms
 from django.db.models.functions import TruncMonth
 import os
 from django.http import FileResponse
-from django.http import JsonResponse
 
 
-
-
-# Create your views here.
 
 #LIST VIEWS ######################################################
+# 
+def lista_processos(request):
+    # Filtra os processos ativos
+    processos_ativos = cad_processo.objects.filter(ativo=True)
+    # Passa a lista filtrada para o template
+    return render (request, 'matriculas/processo_ativo.html', {'processos': processos_ativos})  
+
+
+
 
 class MatriculasListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/matriculas_list.html'
@@ -41,6 +46,17 @@ class MatriculasListView(LoginRequiredMixin, ListView):
             object_list = self.model.objects.all().filter(usuario=self.request.user).order_by('-data_matricula') # Vizualiza somente os registros que o user criou
         return object_list
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Obtém o processo ativo
+        processo_ativo = cad_processo.objects.filter(ativo=True).first()
+
+        # Adiciona o objeto processo_ativo ao contexto
+        context['cad_processo'] = processo_ativo
+
+        return context
+
     
 class MatriculaFileView(View):
     model = Matriculas
@@ -60,7 +76,7 @@ class MatriculaFileView(View):
 
 ## Listar Users 
 
-class UserListView(ListView):
+class UserListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/user_list.html'
     model = User
     queryset = User.objects.all()
@@ -76,30 +92,34 @@ class UserListView(ListView):
     
 
 
-class CampanhaListView(ListView):
+class CampanhaListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/campanha_list.html'
     model = cad_campanhas
     queryset = cad_campanhas.objects.all()
 
-class CursoListView(ListView):
+class CursoListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/curso_list.html'
     model = cad_cursos
     queryset = cad_cursos.objects.all()
     
-class PoloListView(ListView):
+class PoloListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/polo_list.html'
     model = cad_polos
     queryset = cad_polos.objects.all()
     
-class TipoCursoListView(ListView):
+class TipoCursoListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/tipo_curso_list.html'
     model = tipo_curso
     queryset = tipo_curso.objects.all()
     
-class ProcessoListView(ListView):
+class ProcessoListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/processo_list.html'
     model = cad_processo
     queryset = cad_processo.objects.all()
+
+
+    
+
 
 
 #NEW VIEWS ######################################################
@@ -109,37 +129,46 @@ class MatriculasNewView(LoginRequiredMixin,CreateView):  # Criar novo registro
     form_class = MatriculasForm
     
     def get(self, request, *args, **kwargs):
-        form = self.form_class()  # TODO:  AJUSTAR NÃO ESTÁ FILTRANDO O CURSO POR TIPO
+        form = self.form_class()  
         return render(request, self.template_name, {'form': form})
+    
     def form_valid(self, form):
         form.instance.usuario = self.request.user
+        
+        # Obtém o objeto tipo_curso a partir do ID
+        tipo_curso_id = form.cleaned_data['tipo_curso'].id
+
+        tipo_curso_obj = get_object_or_404(tipo_curso, id=tipo_curso_id)
+        
+        # Atribui o objeto tipo_curso ao campo no modelo
+        form.instance.tipo_curso = tipo_curso_obj
+
+        # Atribui o objeto curso ao campo no modelo
+        form.instance.curso = form.cleaned_data['curso']
+
         return super().form_valid(form)
-    
+
     def get_success_url(self) -> str:
         return reverse('matriculas:matriculas_list')
     
-# class UserNewView(CreateView):
-#     template_name = 'matriculas/user_new.html'
-#     form_class = UserForm
 
-#     def form_valid(self, form):
-#          return super().form_valid(form)
     
-#     def get_success_url(self) -> str:
-#         return reverse('matriculas:user_list')
+def get_cursos(request):
+    tipo_curso_id = request.GET.get('tipo_curso')
+    cursos = cad_cursos.objects.filter(tipo_curso_id=tipo_curso_id).values('id', 'nome')
+    cursos_list = list(cursos)
+    print(cursos_list)
+    return JsonResponse(cursos_list, safe=False)
 
-class UserNewView(CreateView):
+   
+
+class UserNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/user_new.html'
     form_class = CustomUserCreationForm
 
     def form_valid(self, form):
         response = super().form_valid(form)
-
-        # Obtenha a instância do usuário recém-criado
         user_instance = form.instance
-
-        # Adicione o código para vincular o usuário ao polo aqui
-        # Supondo que você tenha um campo 'polo' no seu formulário
         selected_polo = form.cleaned_data['polo']
 
         if selected_polo:
@@ -155,7 +184,7 @@ class UserNewView(CreateView):
 
 
     
-class PoloNewView(CreateView):
+class PoloNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/polo_new.html'
     form_class = PoloForm
     
@@ -166,7 +195,7 @@ class PoloNewView(CreateView):
         return reverse('matriculas:polo_list')
 
 
-class CursosNewView(CreateView):
+class CursosNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/cursos_new.html'
     form_class = CursosForm
     
@@ -176,7 +205,7 @@ class CursosNewView(CreateView):
     def get_success_url(self) -> str:
         return reverse('matriculas:curso_list')
     
-class TipoCursoNewView(CreateView):
+class TipoCursoNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/tipo_curso_new.html'
     form_class = TipoCursoForm
     
@@ -186,7 +215,7 @@ class TipoCursoNewView(CreateView):
     def get_success_url(self) -> str:
         return reverse('matriculas:tipo_curso_list')
     
-class CampanhaNewView(CreateView):
+class CampanhaNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/campanha_new.html'
     form_class = CampanhaForm
     
@@ -196,7 +225,7 @@ class CampanhaNewView(CreateView):
     def get_success_url(self) -> str:
         return reverse('matriculas:campanha_list')   
     
-class ProcessoNewView(CreateView):
+class ProcessoNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/processo_new.html'
     form_class = ProcessoForm
     
@@ -211,21 +240,33 @@ class ProcessoNewView(CreateView):
     
 #UPDATE VIEWS ######################################################
     
-class MatriculasUpdateView(UpdateView):
-    template_name = 'matriculas/matriculas_new.html'
+class MatriculasUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = 'matriculas/matriculas_update.html'
     form_class = MatriculasForm
     
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(Matriculas, id=id)
+
+    def get_form(self, **kwargs):
+        form = super().get_form(**kwargs)
+
+        # Preenche os campos 'tipo_curso' e 'curso' com os valores atuais
+        matricula = self.get_object()
+        form.fields['tipo_curso'].initial = matricula.tipo_curso.id if matricula.tipo_curso else None
+        form.fields['curso'].initial = matricula.curso.id if matricula.curso else None
+
+        return form
     
     def form_valid(self, form):
+        form.instance.usuario = self.request.user
         return super().form_valid(form)
     
     def get_success_url(self):
-        return reverse('matriculas:matriculas_list')  #Quando finalizar a ação com sucesso retorna para tela anterior da lista
+        return reverse('matriculas:matriculas_list')
 
-class UserUpdateView(UpdateView):
+
+class UserUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/consultor_new.html'
     form_class = UserForm
     
@@ -239,7 +280,7 @@ class UserUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('matriculas:user_list')
     
-class ConsultorUpdateView(UpdateView):
+class ConsultorUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/consultor_new.html'
     form_class = ConsultorForm
     
@@ -253,7 +294,7 @@ class ConsultorUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('matriculas:consultor_list')
     
-class CampanhaUpdateView(UpdateView):
+class CampanhaUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/campanha_new.html'
     form_class = CampanhaForm
     
@@ -267,7 +308,7 @@ class CampanhaUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('matriculas:campanha_list')
 
-class CursoUpdateView(UpdateView):
+class CursoUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/cursos_new.html'
     form_class = CursosForm
     
@@ -281,7 +322,7 @@ class CursoUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('matriculas:curso_list')
     
-class TipoCursoUpdateView(UpdateView):
+class TipoCursoUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/tipo_curso_new.html'
     form_class = TipoCursoForm
     
@@ -310,7 +351,7 @@ class PoloUpdateView(UpdateView):
         return reverse('matriculas:polo_list')
     
     
-class ProcessoUpdateView(UpdateView):
+class ProcessoUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/processo_new.html'
     form_class = ProcessoForm
     
@@ -327,7 +368,7 @@ class ProcessoUpdateView(UpdateView):
 
 # DELETE VIEWS ######################################################
 
-class MatriculasDeleteView(DeleteView): 
+class MatriculasDeleteView(LoginRequiredMixin, DeleteView): 
     model = Matriculas
     template_name = 'matriculas/matriculas_delete.html'
 
@@ -391,7 +432,7 @@ class MatriculasDeleteView(DeleteView):
 #         return response
 
 
-class ConsultorDeleteView(DeleteView):
+class ConsultorDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(Consultor, id=id)
@@ -400,7 +441,7 @@ class ConsultorDeleteView(DeleteView):
         return reverse('matriculas:consultor_list')
     
     
-class CampanhaDeleteView(DeleteView):
+class CampanhaDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(cad_campanhas, id=id)
@@ -408,7 +449,7 @@ class CampanhaDeleteView(DeleteView):
     def get_success_url(self):
         return reverse('matriculas:campanha_list')
     
-class CursoDeleteView(DeleteView):
+class CursoDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(cad_cursos, id=id)
@@ -417,7 +458,7 @@ class CursoDeleteView(DeleteView):
         return reverse('matriculas:curso_list')
     
     
-class TipoCursoDeleteView(DeleteView):
+class TipoCursoDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(tipo_curso, id=id)
@@ -425,7 +466,7 @@ class TipoCursoDeleteView(DeleteView):
     def get_success_url(self):
         return reverse('matriculas:tipo_curso_list')
     
-class PoloDeleteView(DeleteView):
+class PoloDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(cad_polos, id=id)
@@ -433,7 +474,7 @@ class PoloDeleteView(DeleteView):
     def get_success_url(self):
         return reverse('matriculas:polo_list')
     
-class ProcessoDeleteView(DeleteView):
+class ProcessoDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
         return get_object_or_404(cad_processo, id=id)

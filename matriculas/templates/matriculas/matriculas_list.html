@@ -3,6 +3,7 @@
 
 {% block content %}
 
+
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 
 
@@ -11,7 +12,8 @@
     <img src="{% static 'images/fraseforca.png' %}" alt="Imagem" style="width: auto; height: 60px; margin-right: 10px;">
     <div class="mx-auto align-items-center">
       <div class="d-flex mx-auto">
-        <h1>PROCESSO</h1> <h1 class="text-primary ms-2">XX/2024</h1>
+        <h1>PROCESSO:</h1> <h1 class="text-primary ms-2">{{cad_processo.numero_processo}} / {{cad_processo.ano_processo}}</h1>
+        </h1>
       </div>
         <div class="d-flex mx-auto">
           <h4>CONSULTOR(A):</h4>
@@ -28,9 +30,7 @@
     </div>
   </div>
 
-<!--   <a href="{% url 'matriculas:matriculas_new' %}"
-    <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px;">Nova Matricula</button>
-  </a> -->
+
 
 
 <form>

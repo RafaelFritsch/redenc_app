@@ -1,40 +1,53 @@
-{% extends 'model-page.html'%}
+{% extends 'model-page.html' %}
 {% load crispy_forms_tags %}
 
 {% block content %}
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <div class="text-center">
-<h2> Cadastro de Matrícula</h2>
+    <h2> Cadastro de Matrícula</h2>
 </div>
 
-    <div>
-    {% if form.errors%}
-        {% for field in form%}
-            {% for error in field.errors %}
-                <div class-="alert alert-danger">
-                    <strong>{{error|escape}}</strong>
-                </div>  
-            {% endfor %}
-
-     
-
-        {%endfor%}
+<div>
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>{{ form.errors }}</strong>
+        </div>
     {% endif %}
+</div>
 
-    </div>
-    <div>               
-        <form method="POST" enctype="multipart/form-data">{% csrf_token %}
-            {{ form|crispy}}
+<div>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.media.js }}
+        {{ form|crispy }}
 
-            <input type="hidden" name="tipo_curso" value="{{ form.instance.tipo_curso.id }}" />
-            <button type="submit" class="btn btn-primary">SALVAR</button>
-        </form>
-    </div>
+        <button type="submit" class="btn btn-primary">SALVAR</button>
+    </form>
+</div>
 
+<script>
+    $(document).ready(function () {
+        $('#id_tipo_curso').change(function () {
+            var tipo_curso_id = $(this).val();
+            if (tipo_curso_id) {
+                $.ajax({
+                    url: '{% url "matriculas:get_cursos" %}',
+                    data: {'tipo_curso': tipo_curso_id},
+                    dataType: 'json',
+                    success: function (data) {
+                        var cursoSelect = $('#id_curso');
+                        cursoSelect.empty();
+                        $.each(data, function (key, value) {
+                            cursoSelect.append('<option value="' + value.id + '">' + value.nome + '</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#id_curso').empty();
+            }
+        });
+    });
+</script>
 
-    
-
-
-
-{%endblock%}
+{% endblock %}

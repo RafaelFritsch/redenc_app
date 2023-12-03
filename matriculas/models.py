@@ -38,7 +38,7 @@ class Consultor(models.Model):
     def get_full_phone(self):
         return f"({self.area_code}) {self.phone_number}"
     def get_absolute_url(self):
-        return reverse("matriculas:consultor_update", kwargs={'id': self.id}) #Direciona para a url de edição
+        return reverse("matriculas:user_update", kwargs={'id': self.id}) #Direciona para a url de edição
     
     def get_delete_url(self):
         return reverse("matriculas:consultor_delete", kwargs={'id': self.id})# Exclui o resgistro
@@ -213,20 +213,15 @@ class cad_processo(models.Model):
         return reverse("matriculas:processo_update", kwargs={'id': self.id}) #Direciona para a url de edição
     def get_delete_url(self):
         return reverse("matriculas:processo_delete", kwargs={'id': self.id})# Exclui o resgistro
-    
+
     
 class Matriculas(models.Model):
     id = models.AutoField(primary_key=True)
     data_matricula = models.DateTimeField()
     nome_aluno = models.CharField(max_length=200)
     numero_ra = models.CharField(max_length=12)
-    tipo_curso = models.ForeignKey(tipo_curso, on_delete=models.CASCADE)
-    curso = ChainedForeignKey(cad_cursos, on_delete=models.CASCADE,
-                                chained_field="tipo_curso",
-                                chained_model_field="tipo_curso",
-                                show_all=False,
-                                auto_choose=True,
-                                sort=True)
+    tipo_curso = models.ForeignKey(tipo_curso, on_delete=models.CASCADE, null=True)
+    curso = models.ForeignKey(cad_cursos, on_delete=models.CASCADE)
     campanha = models.ForeignKey(cad_campanhas, on_delete=models.CASCADE) 
     valor_mensalidade = models.DecimalField(max_digits=10, decimal_places=2)
     desconto_polo = models.DecimalField(max_digits=4, decimal_places=2)

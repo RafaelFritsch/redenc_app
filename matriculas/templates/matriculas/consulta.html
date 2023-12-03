@@ -33,12 +33,22 @@
   <tbody>
     {% for item in contagem_matriculas %}
       <tr>
-        <td class="text-center">{{ forloop.counter }}</td>
-        <td>{{ item.usuario }}</td>
-        <td class="text-center">{{ item.contagem }}</td>
-        <td class="text-center">{{ item.soma_pontos }}</td>
-        <td class="text-center">{% if item.dias_sem_matricula is not None %}{{ item.dias_sem_matricula }}{% else %}Nunca{% endif %}</td>
-        <td class="text-center" >
+        <td class="text-center w-10  align-middle">
+          {% if forloop.counter == 1 %}
+            <img src="{% static 'images/trofeu1.png' %}" alt="1"  style="width: 40px;">
+          {% elif forloop.counter == 2 %}
+            <img src="{% static 'images/trofeu2.png' %}" alt=" 2" style="width: 35px;">
+          {% elif forloop.counter == 3 %}
+            <img src="{% static 'images/trofeu3.png' %}" alt=" 3" style="width: 35px;">
+          {% else %}
+            {{ forloop.counter }}
+          {% endif %}
+        </td>
+        <td class="align-middle">{{ item.usuario }}</td>
+        <td class="text-center align-middle">{{ item.contagem }}</td>
+        <td class="text-center align-middle">{{ item.soma_pontos }}</td>
+        <td class="text-center align-middle">{% if item.dias_sem_matricula is not None %}{{ item.dias_sem_matricula }}{% else %}Nunca{% endif %}</td>
+        <td class="text-center align-middle" >
           {% if item.dias_sem_matricula is not None %}
             {% if item.dias_sem_matricula <= 1 %}
               <span class="bolinha verde"></span>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Matriculas,Consultor,cad_campanhas,cad_cursos,cad_polos,tipo_curso
+from .models import *
 
 
 # Register your models here.
@@ -11,9 +11,9 @@ class MatriculasAdmin(admin.ModelAdmin):
 admin.site.register(Matriculas, MatriculasAdmin)
 
 
-@admin.register(Consultor)
-class ConsultorAdmin(admin.ModelAdmin):
-    list_display = ('id', 'first_name', 'last_name', 'email')
+# @admin.register(Consultor)
+# class ConsultorAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'first_name', 'last_name', 'email')
 
 
 @admin.register(cad_campanhas)
@@ -31,3 +31,7 @@ class cad_polosAdmin(admin.ModelAdmin):
 @admin.register(tipo_curso)
 class tipo_cursoAdmin(admin.ModelAdmin):
     list_display = ('id', 'nome', 'pontos', 'create_date', 'update_date', 'active')
+    
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'polo', 'cargo')

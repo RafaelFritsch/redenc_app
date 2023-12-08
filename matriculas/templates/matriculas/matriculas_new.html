@@ -1,31 +1,34 @@
 {% extends 'model-page.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block content %}
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'css/matnew.css' %}">
+
 
 <div class="text-center">
-    <h2> Cadastro de Matrícula</h2>
+        <h2> Cadastro de Matrículas</h2>
+    </div>
+    <div class="centered-form">
+    <div>
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>{{ form.errors }}</strong>
+            </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.media.js }}
+            {{ form|crispy }}
+
+            <button type="submit" class="btn btn-primary">SALVAR</button>
+        </form>
+    </div>
 </div>
-
-<div>
-    {% if form.errors %}
-        <div class="alert alert-danger">
-            <strong>{{ form.errors }}</strong>
-        </div>
-    {% endif %}
-</div>
-
-<div>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.media.js }}
-        {{ form|crispy }}
-
-        <button type="submit" class="btn btn-primary">SALVAR</button>
-    </form>
-</div>
-
 <script>
     $(document).ready(function () {
         $('#id_tipo_curso').change(function () {

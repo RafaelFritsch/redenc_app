@@ -18,6 +18,7 @@ from django import forms
 from django.db.models.functions import TruncMonth
 import os
 from django.http import FileResponse
+from django.contrib.auth.models import Group, Permission
 
 
 
@@ -86,6 +87,10 @@ class UserListView(LoginRequiredMixin, ListView):
         
         # Adiciona os polos associados a cada usuário ao contexto
         context['polos'] = cad_polos.objects.filter(users__in=context['user_list'])
+        
+        # Adiciona os cargos de cada usuário ao contexto
+        user_profiles = UserProfile.objects.filter(user__in=context['user_list'])
+        context['cargos'] = {profile.user_id: profile.cargo for profile in user_profiles}
 
         return context
     
@@ -164,15 +169,23 @@ def get_cursos(request):
 
 class UserNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/user_new.html'
-    form_class = CustomUserCreationForm
+    form_class = UserForm
 
     def form_valid(self, form):
         response = super().form_valid(form)
         user_instance = form.instance
         selected_polo = form.cleaned_data['polo']
+        selected_cargo = form.cleaned_data['cargo'] 
+        
+        # Se o cargo for 'USUARIO', adicione as permissões necessárias
+        if selected_cargo == 'U':
+            # Associe o usuário ao grupo 'UsuarioGroup' (crie o grupo se necessário)
+            usuario_group, created = Group.objects.get_or_create(name='UsuarioGroup')
+            user_instance.groups.add(usuario_group)
+
 
         if selected_polo:
-            user_profile = UserProfile.objects.create(user=user_instance, polo=selected_polo)
+            user_profile = UserProfile.objects.create(user=user_instance, polo=selected_polo, cargo=selected_cargo)
             user_profile.save()
 
         return response
@@ -280,19 +293,19 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('matriculas:user_list')
     
-class ConsultorUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = 'matriculas/consultor_new.html'
-    form_class = ConsultorForm
+# class ConsultorUpdateView(LoginRequiredMixin, UpdateView):
+#     template_name = 'matriculas/consultor_new.html'
+#     form_class = ConsultorForm
     
-    def get_object(self):
-        id = self.kwargs.get('id')
-        return get_object_or_404(Consultor, id=id)  # Retorna o objeto consultor a partir do id
+#     def get_object(self):
+#         id = self.kwargs.get('id')
+#         return get_object_or_404(Consultor, id=id)  # Retorna o objeto consultor a partir do id
     
-    def form_valid(self, form):
-        return super().form_valid(form)
+#     def form_valid(self, form):
+#         return super().form_valid(form)
     
-    def get_success_url(self):
-        return reverse('matriculas:consultor_list')
+#     def get_success_url(self):
+#         return reverse('matriculas:consultor_list')
     
 class CampanhaUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/campanha_new.html'
@@ -432,13 +445,13 @@ class MatriculasDeleteView(LoginRequiredMixin, DeleteView):
 #         return response
 
 
-class ConsultorDeleteView(LoginRequiredMixin, DeleteView):
-    def get_object(self):
-        id = self.kwargs.get('id')
-        return get_object_or_404(Consultor, id=id)
+# class ConsultorDeleteView(LoginRequiredMixin, DeleteView):
+#     def get_object(self):
+#         id = self.kwargs.get('id')
+#         return get_object_or_404(Consultor, id=id)
     
-    def get_success_url(self):
-        return reverse('matriculas:consultor_list')
+#     def get_success_url(self):
+#         return reverse('matriculas:consultor_list')
     
     
 class CampanhaDeleteView(LoginRequiredMixin, DeleteView):

@@ -38,7 +38,7 @@ urlpatterns = [
     
     #UpdateView
     path('<int:id>/', MatriculasUpdateView.as_view(), name='matriculas_update'),
-    path('consultores/<int:id>', ConsultorUpdateView.as_view(), name='consultor_update'),
+    #path('consultores/<int:id>', ConsultorUpdateView.as_view(), name='consultor_update'),
     path('consultores/<int:id>', UserUpdateView.as_view(), name='user_update'),
     path('campanhas/<int:id>', CampanhaUpdateView.as_view(), name='campanha_update'),
     path('curso/<int:id>', CursoUpdateView.as_view(), name='curso_update'),
@@ -48,7 +48,7 @@ urlpatterns = [
     
     #DeleteView
     path('<int:id>/delete', MatriculasDeleteView.as_view(), name='matriculas_delete'),
-    path('consultores/<int:id>/delete', ConsultorDeleteView.as_view(), name='consultor_delete'),
+    #path('consultores/<int:id>/delete', ConsultorDeleteView.as_view(), name='consultor_delete'),
     path('campanhas/<int:id>/delete', CampanhaDeleteView.as_view(), name='campanha_delete'),
     path('curso/<int:id>/delete', CursoDeleteView.as_view(), name='curso_delete'),
     path('tipocurso/<int:id>/delete', TipoCursoDeleteView.as_view(), name='tipo_curso_delete'),

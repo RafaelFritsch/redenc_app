@@ -15,29 +15,42 @@
         <li class="nav-item">
             <a class="nav-link" href="{% url 'matriculas:matriculas_list' %}">Matrículas</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'matriculas:user_list' %}">Consultores</a>
+        {% if request.user.is_authenticated and request.user.userprofile.cargo == 'A' or request.user.is_superuser %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'matriculas:user_list' %}">Usuários</a>
+        {% endif %}
         </li>
+        {% if request.user.is_authenticated and request.user.userprofile.cargo == 'A' or request.user.is_superuser %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'matriculas:polo_list' %}">Polos</a>
+        {% endif %}
         </li>
+        {% if request.user.is_authenticated and request.user.userprofile.cargo == 'A' or request.user.is_superuser %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'matriculas:curso_list' %}">Cursos</a>
+            {% endif %}
         </li>
+        {% if request.user.is_authenticated and request.user.userprofile.cargo == 'A' or request.user.is_superuser %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'matriculas:tipo_curso_list' %}">Tipo de Curso</a>
+        {% endif %}
         </li>
+        {% if request.user.is_authenticated and request.user.userprofile.cargo == 'A' or request.user.is_superuser %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'matriculas:campanha_list' %}">Campanhas</a>
+        {% endif %}
         </li>
+        {% if request.user.is_authenticated and request.user.userprofile.cargo == 'A' or request.user.is_superuser %}
         <li class="nav-item">
             <a class="nav-link" href="{% url 'matriculas:processo_list' %}">Processos</a>
+        {% endif %}
         </li>
         <li class="nav-item">
             <a class="nav-link">
             <span class="navbar-text"></span>
             </a>
         </li>
+        
         <li class="nav-item">
             <a class="nav-link highlight-link" href="{%url 'matriculas:matriculas_new'%}">Nova Matrícula</a>
         </li>

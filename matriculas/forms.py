@@ -97,34 +97,34 @@ class MatriculasForm(forms.ModelForm):
 
 
         
-class ConsultorForm(forms.ModelForm):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email = forms.EmailField()
-    birth_date = forms.DateField(widget=DateInput())
-    area_code = forms.RegexField(
-        label='DDD',
-        regex=r"^\+?1?[0-9]{2}",
-        error_messages={'invalid': 'DDD inválido.'},
-    )
-    phone_number = forms.RegexField(
-        label='Telefone',
-        regex=r"^\+?1?[0-9]{8,15}",
-        error_messages={'invalid': 'Telefone inválido.'},
+# class ConsultorForm(forms.ModelForm):
+#     first_name = forms.CharField()
+#     last_name = forms.CharField()
+#     email = forms.EmailField()
+#     birth_date = forms.DateField(widget=DateInput())
+#     area_code = forms.RegexField(
+#         label='DDD',
+#         regex=r"^\+?1?[0-9]{2}",
+#         error_messages={'invalid': 'DDD inválido.'},
+#     )
+#     phone_number = forms.RegexField(
+#         label='Telefone',
+#         regex=r"^\+?1?[0-9]{8,15}",
+#         error_messages={'invalid': 'Telefone inválido.'},
         
-    )
-    active = forms.BooleanField()
-    class Meta:
-        model = Consultor
-        fields = (
-            'first_name',
-            'last_name',
-            'email',
-            'birth_date',
-            'area_code',
-            'phone_number',
-            'active',
-        )
+#     )
+#     active = forms.BooleanField()
+#     class Meta:
+#         model = Consultor
+#         fields = (
+#             'first_name',
+#             'last_name',
+#             'email',
+#             'birth_date',
+#             'area_code',
+#             'phone_number',
+#             'active',
+#         )
 
 
 ESTADOS_UF = (
@@ -173,7 +173,9 @@ class PoloForm(forms.ModelForm):
             'estado',
             'active',
         )
-        
+        labels = {
+            'active': 'Ativo',
+        }
 
         
 
@@ -191,13 +193,25 @@ class CampanhaForm(forms.ModelForm):
             'data_fim',
             'active',
         )
+       
         
 class UserForm(UserCreationForm):
+    choices_cargo = (('U', 'USUARIO'), ('A', 'ADMINISTRADOR'))
     polo = forms.ModelChoiceField(queryset=cad_polos.objects.all())
+    cargo = forms.ChoiceField(choices=choices_cargo, widget=forms.Select(attrs={'class': 'form-control'}))  # Adicionei o widget e a classe 'form-control'
     class Meta:
          model = User
-         fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2')
-         
+         fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2', 'polo', 'cargo')  # Adicionei 'polo' e 'cargo'
+         labels = {
+             'fist_name': 'Nome',
+             'last_name': 'Sobrenome',
+             'username': 'Nome de Usuário',
+             'email': 'Email',
+             'password1': 'Senha',
+             'password2': 'Confirme a Senha',
+             'polo': 'Polo',
+             'cargo': 'Cargo',
+         }
 
     
     def get_absolute_url(self):

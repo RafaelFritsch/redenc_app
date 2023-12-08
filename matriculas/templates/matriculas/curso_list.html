@@ -1,36 +1,36 @@
 {% extends 'model-page.html'%}
 
 {% block content %}
-<h1>CURSOS</h1>
+<h1>Cursos</h1>
 <a href="{% url 'matriculas:cursos_new' %}"
 <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px;">Novo Curso</button>
 </a>
 
-<table class="table table-bordered">
+<table class="table table table-striped">
     <thead>
         <tr>
-          <th scope="col">Nome</th>
+          <th class="text-start align-middle">Nome</th>
 <!--           <th scope="col">Data Criação</th>
           <th scope="col">Data Atualização</th> -->
-          <th scope="col">Tipo</th>
-          <th scope="col">Ativo</th>
-          <th scope="col">EDITAR</th>
-          <th scope="col">EXCLUIR</th>
+          <th class="text-center align-middle">Tipo</th>
+          <th class="text-center align-middle"">Ativo</th>
+          <th class="text-end align-middle">EDITAR</th>
+          <th class="text-end align-middle">EXCLUIR</th>
         </tr>
       </thead>
       <tbody>
         {% for cad_curso in object_list %}
           <tr>
-            <td>{{cad_curso.nome}}</td>
+            <td class="text-start align-middle">{{cad_curso.nome}}</td>
 <!--             <td>{{cad_curso.get_data_create_curso}}</td>
             <td>{{cad_curso.get_data_update_curso}}</td> -->
-            <td>{{cad_curso.tipo_curso}}</td>
-            <td>{{cad_curso.active}}</td>
+            <td class="text-center align-middle">{{cad_curso.tipo_curso}}</td>
+            <td class="text-center align-middle">{{cad_curso.active}}</td>
 
 
-            <td><a href = "{{ cad_curso.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></td>
+            <td class="text-end align-middle"><a href = "{{ cad_curso.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></td>
               <form method="POST" action="{{ cad_curso.get_delete_url }}">{% csrf_token %}
-                <td><button type="submit" class="btn btn-danger">Excluir</button></td>
+                <td class="text-end align-middle"><button type="submit" class="btn btn-danger">Excluir</button></td>
               </form>
           </tr>
         {% endfor %}

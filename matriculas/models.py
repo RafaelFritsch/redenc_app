@@ -10,38 +10,38 @@ from smart_selects.db_fields import ChainedForeignKey
 
 
 
-class Consultor(models.Model):
-    id = models.AutoField(primary_key=True)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=50)
-    email = models.EmailField()
-    birth_date = models.DateField()
-    area_code = models.CharField(max_length=2)
-    phone_number = models.CharField(max_length=9)
-    create_date = models.DateTimeField(auto_now_add=True)
-    update_date = models.DateTimeField(auto_now=True)
-    active = models.BooleanField(default=True)
+# class Consultor(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     first_name = models.CharField(max_length=30)
+#     last_name = models.CharField(max_length=50)
+#     email = models.EmailField()
+#     birth_date = models.DateField()
+#     area_code = models.CharField(max_length=2)
+#     phone_number = models.CharField(max_length=9)
+#     create_date = models.DateTimeField(auto_now_add=True)
+#     update_date = models.DateTimeField(auto_now=True)
+#     active = models.BooleanField(default=True)
     
-    class Meta:
-        db_table = 'consultor'
+#     class Meta:
+#         db_table = 'consultor'
         
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"  
-    def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
-    def get_data_nascimento(self):
-        return self.birth_date.strftime('%d/%m/%Y')
-    def get_data_create(self):
-        return self.create_date.strftime('%d/%m/%Y')
-    def get_data_update(self):
-        return self.update_date.strftime('%d/%m/%Y')
-    def get_full_phone(self):
-        return f"({self.area_code}) {self.phone_number}"
-    def get_absolute_url(self):
-        return reverse("matriculas:user_update", kwargs={'id': self.id}) #Direciona para a url de edição
+#     def __str__(self):
+#         return f"{self.first_name} {self.last_name}"  
+#     def get_full_name(self):
+#         return f"{self.first_name} {self.last_name}"
+#     def get_data_nascimento(self):
+#         return self.birth_date.strftime('%d/%m/%Y')
+#     def get_data_create(self):
+#         return self.create_date.strftime('%d/%m/%Y')
+#     def get_data_update(self):
+#         return self.update_date.strftime('%d/%m/%Y')
+#     def get_full_phone(self):
+#         return f"({self.area_code}) {self.phone_number}"
+#     def get_absolute_url(self):
+#         return reverse("matriculas:user_update", kwargs={'id': self.id}) #Direciona para a url de edição
     
-    def get_delete_url(self):
-        return reverse("matriculas:consultor_delete", kwargs={'id': self.id})# Exclui o resgistro
+#     def get_delete_url(self):
+#         return reverse("matriculas:consultor_delete", kwargs={'id': self.id})# Exclui o resgistro
 
 
 class cad_polos(models.Model):
@@ -184,8 +184,10 @@ class cad_campanhas(models.Model):
 #Adicionar o campo polo no cadastro do usuario    
 #
 class UserProfile(models.Model):
+    choices_cargo = (('U', 'USUARIO'), ('A', 'ADMINISTRADOR'))
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     polo = models.ForeignKey(cad_polos, on_delete=models.SET_NULL, null=True, blank=True)
+    cargo = models.CharField(max_length=1, choices=choices_cargo)
     
     def __str__(self):
         return self.user.username

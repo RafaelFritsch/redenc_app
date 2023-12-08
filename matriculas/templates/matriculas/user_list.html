@@ -1,19 +1,20 @@
 {% extends 'model-page.html'%}
 
 {% block content %}
-<h1>Consultores</h1>
+<h1>Usuários</h1>
 
 <a href="{% url 'matriculas:user_new' %}"
-    <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px">Novo Consultor</button>
+    <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px">Novo Usuário</button>
   </a>
 
-  <table class="table">
+  <table class="table table-striped">
     <thead>
         <tr>
             <th>Nome</th>
-            <th>usuário</th>
+            <th>Usuário</th>
             <th>Email</th>
             <th>Polo</th>
+            <th>Tipo</th>
         </tr>
     </thead>
     <tbody>
@@ -29,7 +30,19 @@
                         Sem polo vinculado
                     {% endif %}
                 </td>
-                
+                <td>
+                  {% if user.userprofile %}
+                      {% if user.userprofile.cargo == 'U' %}
+                          Usuário
+                      {% elif user.userprofile.cargo == 'A' %}
+                          Administrativo
+                      {% else %}
+                          {{ user.userprofile.cargo }}
+                      {% endif %}
+                  {% else %}
+                      Sem perfil de usuário
+                  {% endif %}
+              </td>  
             </tr>
         {% endfor %}
     </tbody>

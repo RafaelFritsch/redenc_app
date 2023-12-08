@@ -500,7 +500,7 @@ class ProcessoDeleteView(LoginRequiredMixin, DeleteView):
 
         
 
-def RankView(request):
+""" def RankView(request):     #Funcional caso não funcione retornar
     context = {}
     context['usuarios'] = User.objects.all()
     
@@ -546,6 +546,58 @@ def RankView(request):
         context['num_linhas'] = range(1, len(context['contagem_matriculas']) + 1)
 
     return render(request, 'matriculas/consulta.html', context)
+ """
 
+from datetime import datetime
+from django.shortcuts import render
+from .models import User, Matriculas, tipo_curso, cad_campanhas
 
+def RankView(request):
+    context = {}
+    context['usuarios'] = User.objects.all()
+
+    # Obtém a campanha ativa
+    processo_ativo = cad_processo.objects.filter(ativo=True).first()
+
+    if processo_ativo:
+        data_inicio = processo_ativo.data_inicial_processo
+        data_fim = processo_ativo.data_final_processo
+
+        context['contagem_matriculas'] = []
+
+        for usuario in context['usuarios']:
+            contagem = Matriculas.objects.filter(usuario=usuario, create_date__range=[data_inicio, data_fim]).count()
+
+            soma_pontos = tipo_curso.objects.filter(matriculas__usuario=usuario).aggregate(soma_pontos=models.Sum('pontos'))['soma_pontos']
+
+            ultima_matricula = Matriculas.objects.filter(usuario=usuario).order_by('-create_date').first()
+
+            if ultima_matricula:
+                agora = datetime.now(ultima_matricula.create_date.tzinfo)
+                dias_sem_matricula = (agora - ultima_matricula.create_date).days
+            else:
+                dias_sem_matricula = None
+
+            if dias_sem_matricula is not None:
+                if dias_sem_matricula <= 1:
+                    cor = 'verde'
+                elif dias_sem_matricula <= 3:
+                    cor = 'amarela'
+                else:
+                    cor = 'vermelha'
+            else:
+                cor = 'nunca'
+
+            context['contagem_matriculas'].append({
+                'usuario': usuario.username,
+                'contagem': contagem,
+                'soma_pontos': soma_pontos if soma_pontos is not None else 0,
+                'dias_sem_matricula': dias_sem_matricula,
+                'cor': cor
+            })
+
+        context['contagem_matriculas'].sort(key=lambda x: x['contagem'], reverse=True)
+        context['num_linhas'] = range(1, len(context['contagem_matriculas']) + 1)
+
+    return render(request, 'matriculas/consulta.html', context)
 

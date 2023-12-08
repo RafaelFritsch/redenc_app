@@ -51,9 +51,9 @@ class MatriculasForm(forms.ModelForm):
     tipo_curso = forms.ModelChoiceField(queryset=tipo_curso.objects.all())
     curso = forms.ModelChoiceField(queryset=cad_cursos.objects.all())
     campanha = forms.ModelChoiceField(queryset=cad_campanhas.objects.all()) 
-    valor_mensalidade = forms.DecimalField()
-    desconto_polo = forms.DecimalField()
-    desconto_total = forms.DecimalField()
+    valor_mensalidade = forms.DecimalField(label='R$ 1º Mens.')
+    desconto_polo = forms.DecimalField(label='R$ 2º Mens.')
+    desconto_total = forms.DecimalField(label='% Bolsa')
     processo_sel = forms.ModelChoiceField(queryset=cad_processo.objects.filter(ativo=True), widget=forms.Select(attrs={'class': 'selectpicker'}), label='Processo Seletivo')
     arquivos = forms.FileField(label='Enviar Comprovante', required=False, widget=forms.ClearableFileInput())
     
@@ -75,6 +75,7 @@ class MatriculasForm(forms.ModelForm):
             'desconto_total',
             'arquivos',
         )
+        
     def __init__(self, *args, **kwargs):
         super(MatriculasForm, self).__init__(*args, **kwargs)
         self.fields['processo_sel'].label_from_instance = self.label_from_instance
@@ -203,7 +204,7 @@ class UserForm(UserCreationForm):
          model = User
          fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2', 'polo', 'cargo')  # Adicionei 'polo' e 'cargo'
          labels = {
-             'fist_name': 'Nome',
+             'first_name': 'Nome',
              'last_name': 'Sobrenome',
              'username': 'Nome de Usuário',
              'email': 'Email',

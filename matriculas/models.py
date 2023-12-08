@@ -166,7 +166,7 @@ class cad_campanhas(models.Model):
         return self.data_inicio.strftime('%d/%m/%Y')
     
     def get_data_fim_camp(self):
-        return self.update_date.strftime('%d/%m/%Y')
+        return self.data_fim.strftime('%d/%m/%Y')
     
     def get_absolute_url(self):
         return reverse("matriculas:campanha_update", kwargs={'id': self.id}) #Direciona para a url de edição

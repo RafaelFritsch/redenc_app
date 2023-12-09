@@ -7,22 +7,27 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
 
 
-
   <div class="redenc mb-3 d-flex  align-items-center ">
     <img src="{% static 'images/fraseforca.png' %}" alt="Imagem" style="width: auto; height: 60px; margin-right: 10px;">
     <div class="mx-auto align-items-center">
+      
       <div class="d-flex mx-auto">
-        <h1>PROCESSO:</h1> <h1 class="text-primary ms-2">{{cad_processo.numero_processo}} / {{cad_processo.ano_processo}}</h1>
-        </h1>
+        <form method="get">
+          <div class="d-flex align-items-end mb-3">
+            <div class="p-3 flex-grow-1 ">
+              <label for="data_inicial" class="form-label">Data Inicial:</label>
+              <input class="form-control" type="date" name="data_inicial" id="data_inicial">
+            </div>
+            <div class="p-3 flex-grow-1 r">
+              <label for="data_final" class="form-label">Data Final:</label>
+              <input class="form-control" type="date" name="data_final" id="data_final">
+            </div>
+            <div class="p-3 ">
+              <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>  
+          </div>
+        </form>
       </div>
-        <div class="d-flex mx-auto">
-          <h4>CONSULTOR(A):</h4>
-          <h4 class="text-warning ms-2">{{ request.user.first_name }} {{ request.user.last_name }}</h4> 
-          {% if request.user.userprofile %}
-            <h4 class="ms-2">| Polo: </h4>
-            <h4 class="text-warning ms-2">{{ request.user.userprofile.polo }}</h4>
-          {% endif %}
-        </div>
 
     </div>
     <div class="align-items-right">
@@ -56,6 +61,7 @@
           <th class="text-center text-sm bg-secondary align-middle align-items-center">R$ 1º MENS.</th>
           <th class="text-center text-sm bg-secondary align-middle align-items-center">R$ 2º MENS.</th>
           <th class="text-center text-sm bg-secondary align-middle align-items-center">% BOLSA</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">Usuário</th>
           <th class="bg-secondary"></th>
 
         </tr>
@@ -72,7 +78,8 @@
             <td class="text-center w-11 align-middle align-items-center">{{matriculas.valor_mensalidade}}</td>
             <td class="text-center w-11 align-middle align-items-center">{{matriculas.desconto_polo}}</td>
             <td class="text-center w-11 align-middle align-items-center">{{matriculas.desconto_total}}</td>
-            <td class="text-start w-11">
+            <td class="text-center w-11 align-middle align-items-center">{{matriculas.usuario.username }}</td>
+            <td class="text-center w-11">
               <div class="d-flex justify-content-center align-items-center">
                 <a href = "{{ matriculas.get_absolute_url }}">
                   <img src="{% static 'images/edit.png' %}" alt="EDITAR" style="width: 24px; height: auto;">

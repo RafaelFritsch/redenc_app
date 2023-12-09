@@ -78,3 +78,8 @@
     align-items: flex-end;
   }
 
+  .grafico {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+}

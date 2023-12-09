@@ -60,6 +60,8 @@ urlpatterns = [
     #path('filtrocursos/', FiltroCursos, name='filtrar_cursos'),
     path('get_cursos/', get_cursos, name='get_cursos'),
     path('processo_ativo', lista_processos, name='processo_ativo'),
+    path('relatorios/', MatriculasFullListView.as_view(), name='matriculas_full_list'),
+    path('relatorios-dia/', RelatorioDia.as_view(), name='relatorio_dia'),
   
     
     

@@ -19,6 +19,11 @@ from django.db.models.functions import TruncMonth
 import os
 from django.http import FileResponse
 from django.contrib.auth.models import Group, Permission
+from django.utils import timezone
+from django.db.models import Case, When, IntegerField, Sum
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+from django.core import serializers
 
 
 
@@ -601,3 +606,79 @@ def RankView(request):
 
     return render(request, 'matriculas/consulta.html', context)
 
+
+class MatriculasFullListView(ListView):
+    template_name = 'matriculas/matriculas_full_list.html'
+    paginate_by = 10
+    model = Matriculas
+    queryset = Matriculas.objects.all()
+
+    def get_queryset(self):
+        queryset = Matriculas.objects.all()
+
+        # Filtrar por data inicial
+        data_inicial = self.request.GET.get('data_inicial')
+        if data_inicial:
+            data_inicial = datetime.strptime(data_inicial, '%Y-%m-%d').date()
+            queryset = queryset.filter(data_matricula__gte=data_inicial)
+
+        # Filtrar por data final
+        data_final = self.request.GET.get('data_final')
+        if data_final:
+            data_final = datetime.strptime(data_final, '%Y-%m-%d').date()
+            queryset = queryset.filter(data_matricula__lte=data_final)
+        
+        queryset = queryset.order_by('-data_matricula')
+
+        return queryset
+    
+    
+class RelatorioDia(LoginRequiredMixin, ListView):
+    template_name = 'matriculas/relatorio_dia.html'
+    paginate_by = 10
+    model = Matriculas
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Total de Matrículas do Dia
+        total_matriculas_dia = Matriculas.objects.filter(
+            data_matricula__date=timezone.now().date()
+        ).count()
+        context['total_matriculas_dia'] = total_matriculas_dia
+
+        # Lista de Polos Cadastrados
+        context['polos'] = cad_polos.objects.all()
+        
+        # Quantidade total de matrículas por polo
+        matriculas_por_polo = {}
+        for polo in context['polos']:
+            matriculas_por_polo[polo.id] = Matriculas.objects.filter(
+                usuario__userprofile__polo=polo,
+                data_matricula__date=timezone.now().date()
+            ).aggregate(total=Count('id'))['total']
+
+        context['matriculas_por_polo'] = matriculas_por_polo
+
+        # Total de Matrículas por Usuário
+        matriculas_por_usuario = (
+            Matriculas.objects
+            .filter(data_matricula__date=timezone.now().date())
+            .values('usuario__username')  # Substitua 'usuario__username' pelo nome real do campo que representa o usuário em Matriculas
+            .annotate(total=Count('id'))
+        )
+        context['matriculas_por_usuario'] = matriculas_por_usuario
+        
+        
+        # Total de Matrículas por Usuário com informação do Polo
+        matriculas_por_usuario_com_polo = (
+            Matriculas.objects
+            .filter(data_matricula__date=timezone.now().date())
+            .values('usuario__userprofile__polo__nome')  
+            # Substitua 'usuario__username' e 'usuario__userprofile__polo__nome' pelos nomes reais dos campos
+            .annotate(total=Count('id'))
+        )
+        context['matriculas_por_usuario_com_polo'] = matriculas_por_usuario_com_polo
+             
+        
+        return context 

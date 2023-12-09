@@ -217,7 +217,9 @@ class UserForm(UserCreationForm):
     
     def get_absolute_url(self):
         return reverse("matriculas:user_update", kwargs={'id': self.id}) #Direciona para a url de edição
-    
+ 
+class UsuarioForm(forms.Form):
+    usuarios = forms.ModelChoiceField(queryset=UserProfile.objects.all(),required=False, label='Escolha o usuário')   
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -252,6 +254,15 @@ class ProcessoForm(forms.ModelForm):
         self.fields['ano_processo'].initial = datetime.now().year
         self.fields['ativo'].initial = True
     
+    def clean(self):
+        cleaned_data = super().clean()
+        numero_processo = cleaned_data.get('numero_processo')
+        ano_processo = cleaned_data.get('ano_processo')
+
+        # Verifica se o processo existe
+        if not cad_processo.objects.filter(numero_processo=numero_processo, ano_processo=ano_processo).exists():
+            raise forms.ValidationError("O processo selecionado não é válido.")
+    
     class Meta:
         model = cad_processo
         fields = (
@@ -262,3 +273,6 @@ class ProcessoForm(forms.ModelForm):
             'ativo',
         )
     
+class DateRangeForm(forms.Form):
+    data_inicial = forms.DateField(label='Data Inicial', widget=forms.DateInput(attrs={'type': 'date'}))
+    data_final = forms.DateField(label='Data Final', widget=forms.DateInput(attrs={'type': 'date'}))

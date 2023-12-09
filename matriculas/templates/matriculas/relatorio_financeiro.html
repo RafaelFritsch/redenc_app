@@ -1,0 +1,107 @@
+{% extends 'model-page.html'%}
+{% load static %}
+
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+
+
+<div class="redenc mb-3 d-flex align-items-center">
+  <img src="{% static 'images/nc_bw.png' %}" alt="Imagem" style="width: 100px; height: auto; margin-right: 10px;">
+  <div class="mx-auto text-center">
+    <h1 class="mb-0">DESEMPENHO FINANCEIRO</h1>
+    <div class="d-flex mx-auto pt-2 justify-content-center">
+      <form method="get" id="sender" action="{% url 'matriculas:relatorio_financeiro' %}">{% csrf_token %}
+        <div class="d-flex align-items-center mb-0">
+          <div class="p-3 flex-grow-1 ">
+            <label for="{{ form.data_inicial.id_for_label }}" class="form-label">Data Inicial: </label> {{ form.data_inicial }}
+          </div>
+          <div class="p-3 flex-grow-1 ">
+            <label for="{{ form.data_final.id_for_label }} "class="form-label">Data Final: </label> {{ form.data_final }}
+          </div>
+          <div class="p-3 flex-grow-1 ">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="d-flex mx-auto justify-content-center">
+      <div><h3>{{ data_inicial }}</h3> </div>
+      <div class="ms-3"><h3>até</h3></div> 
+      <div class="ms-3"><h3>{{ data_final }}</h3></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col  pb-4 ">
+      <div><h4 class="text-center">Consultor com a média mais alta de 1º mensalidade:</h4> 
+        <h2 class="text-center text-bg-secondary">{{ user_with_highest_avg_1mens.user.first_name }} {{ user_with_highest_avg_1mens.user.last_name }}</h2>
+        <h3 class="text-center mt-3 mb-0">Média: R${{ user_with_highest_avg_1mens.avg_valor_mensalidade|floatformat:2 }}</h3>
+      </div>
+    </div>
+    <div class="col  pb-4  mb-0">
+      <div><h4 class="text-center">Consultor com a média mais alta de 2º mensalidade:</h4>
+      <h2 class="text-center text-bg-secondary">{{ user_with_highest_avg_2mens.user.first_name }} {{ user_with_highest_avg_2mens.user.last_name }}</h2>
+      <h3 class="text-center mt-3 mb-0">Média: R${{ user_with_highest_avg_2mens.avg_desconto_polo|floatformat:2 }}</h3>
+      </div>
+    </div>
+    <div class="col  pb-4 ">
+      <div><h4 class="text-center">Consultor com a média mais baixa de desconto:</h4>
+        <h2 class="text-center text-bg-secondary">{{ user_with_highest_avg_desc.user.first_name }} {{ user_with_highest_avg_desc.user.last_name }}</h2>
+        <h3 class="text-center mt-3 mb-0">Média: {{ user_with_highest_avg_desc.avg_desconto_total|floatformat:2 }}%</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class=" container">
+
+  <table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="text-center align-middle">Usuário</th>
+            <th class="text-center align-middle">Total Valor  1º Mensalidade</th>
+            <th class="text-center align-middle">Total Valor 2º Mensalidade</th>
+            <th class="text-center align-middle">Total Desconto</th>
+            <th class="text-center align-middle">Média Valor  1º Mensalidade por Matrícula</th>
+            <th class="text-center align-middle">Média Valor 2º Mensalidade por Matrícula</th>
+            <th class="text-center align-middle">Média Desconto Total por Matrícula</th>
+            <th class="text-center align-middle">Total Matrículas</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for data in user_data %}
+            <tr>
+                <td class="text-center align-middle">{{ data.user.username }}</td>
+                <td class="text-center align-middle">{{ data.total_valor_mensalidade|floatformat:2 }}</td>
+                <td class="text-center align-middle">{{ data.total_desconto_polo|floatformat:0 }}</td>
+                <td class="text-center align-middle">{{ data.total_desconto_total|floatformat:2 }}</td>
+                <td class="text-center align-middle">{{ data.avg_valor_mensalidade|floatformat:2 }}</td>
+                <td class="text-center align-middle">{{ data.avg_desconto_polo|floatformat:2 }}</td>
+                <td class="text-center align-middle">{{ data.avg_desconto_total|floatformat:0 }}</td>
+                <td class="text-center align-middle">{{ data.total_matriculas|floatformat:0 }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+
+</div>
+      
+     
+
+
+
+
+{% endblock %}

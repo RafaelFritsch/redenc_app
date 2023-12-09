@@ -62,6 +62,7 @@ urlpatterns = [
     path('processo_ativo', lista_processos, name='processo_ativo'),
     path('relatorios/', MatriculasFullListView.as_view(), name='matriculas_full_list'),
     path('relatorios-dia/', RelatorioDia.as_view(), name='relatorio_dia'),
+    path('relatorios-financeiro/', RelatorioFinanceiro.as_view(), name='relatorio_financeiro'),
   
     
     

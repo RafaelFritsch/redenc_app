@@ -5,7 +5,7 @@ from django.db.models.aggregates import Count, Sum, Avg
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
 from django.views import View
 from .models import *
 from .forms import *
@@ -24,6 +24,7 @@ from django.db.models import Case, When, IntegerField, Sum
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 from django.core import serializers
+from decimal import Decimal
 
 
 
@@ -607,7 +608,7 @@ def RankView(request):
     return render(request, 'matriculas/consulta.html', context)
 
 
-class MatriculasFullListView(ListView):
+class MatriculasFullListView(ListView):#TODO: Ajustar para quando exlcuir um registro voltar para a mesma página
     template_name = 'matriculas/matriculas_full_list.html'
     paginate_by = 10
     model = Matriculas
@@ -682,3 +683,96 @@ class RelatorioDia(LoginRequiredMixin, ListView):
              
         
         return context 
+
+class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView):
+    template_name = 'matriculas/relatorio_financeiro.html'
+    paginate_by = 10
+    model = Matriculas
+    form_class = DateRangeForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_data = []
+        user_with_highest_avg_1mens = None
+        user_with_highest_avg_2mens = None
+        user_with_highest_avg_desc = None
+
+        # Se o formulário for válido, processa as datas
+        if self.request.method == 'GET' and 'data_inicial' in self.request.GET and 'data_final' in self.request.GET:
+            data_inicial = self.request.GET['data_inicial']
+            data_final = self.request.GET['data_final']
+
+            # Converte as datas para o formato desejado (DD/MM/AA)
+            data_inicial_formatted = datetime.strptime(data_inicial, '%Y-%m-%d').strftime('%d/%m/%y')
+            data_final_formatted = datetime.strptime(data_final, '%Y-%m-%d').strftime('%d/%m/%y')
+
+            # Adiciona as datas ao contexto formatadas
+            context['data_inicial'] = data_inicial_formatted
+            context['data_final'] = data_final_formatted
+            
+            # Obtém todos os usuários
+            users = User.objects.filter(is_superuser=False)
+            
+            # Itera sobre cada usuário para calcular os totais
+            for user in users:
+                try:
+                    # Tenta obter o perfil de usuário
+                    user_profile = UserProfile.objects.get(user=user)
+
+                    # Filtra as matrículas associadas a esse usuário
+                    user_matriculas = Matriculas.objects.filter(usuario=user, data_matricula__range=[data_inicial, data_final])
+
+                    # Calcula os totais para cada campo
+                    total_valor_mensalidade = user_matriculas.aggregate(Sum('valor_mensalidade'))['valor_mensalidade__sum']
+                    total_desconto_polo = user_matriculas.aggregate(Sum('desconto_polo'))['desconto_polo__sum']
+                    total_desconto_total = user_matriculas.aggregate(Sum('desconto_total'))['desconto_total__sum']
+
+                    # Calcula valores divididos pelo número de matrículas
+                    total_matriculas = user_matriculas.count()
+                    avg_valor_mensalidade = total_valor_mensalidade / total_matriculas if total_matriculas else 0
+                    avg_desconto_polo = total_desconto_polo / total_matriculas if total_matriculas else 0
+                    avg_desconto_total = total_desconto_total / total_matriculas if total_matriculas else 0
+                    
+                    # Encontrar o usuário com a média mais alta
+                    # user_with_highest_avg_1mens = max(user_data, key=lambda user: user['avg_valor_mensalidade'])
+                    # user_with_highest_avg_2mens = max(user_data, key=lambda user: user['avg_desconto_polo'])
+                    # user_with_highest_avg_desc = min(user_data, key=lambda user: user['avg_desconto_total'])
+
+                    # Adiciona os dados do usuário e totais ao contexto
+                    user_data.append({
+                        'user': user,
+                        'total_valor_mensalidade': total_valor_mensalidade or 0,
+                        'total_desconto_polo': total_desconto_polo or 0,
+                        'total_desconto_total': total_desconto_total or 0,
+                        'avg_valor_mensalidade': avg_valor_mensalidade,
+                        'avg_desconto_polo': avg_desconto_polo,
+                        'avg_desconto_total': avg_desconto_total,
+                        'total_matriculas': total_matriculas,
+                    })
+                except UserProfile.DoesNotExist:
+                    # Se o perfil de usuário não existir, adiciona dados padrão ao contexto
+                    user_data.append({
+                        'user': user,
+                        'total_valor_mensalidade': 0,
+                        'total_desconto_polo': 0,
+                        'total_desconto_total': 0,
+                        'avg_valor_mensalidade': 0,
+                        'avg_desconto_polo': 0,
+                        'avg_desconto_total': 0,
+                        'total_matriculas': 0,
+                    })
+        
+                # Verifica se há pelo menos um usuário antes de calcular o máximo
+        if user_data:
+            # Encontrar o usuário com a média mais alta
+            user_with_highest_avg_1mens = max(user_data, key=lambda user: user['avg_valor_mensalidade'])
+            user_with_highest_avg_2mens = max(user_data, key=lambda user: user['avg_desconto_polo'])
+            user_with_highest_avg_desc = min(user_data, key=lambda user: user['avg_desconto_total'])
+
+        # Adiciona os dados ao contexto da view
+        context['user_data'] = user_data
+        context['user_with_highest_avg_1mens'] = user_with_highest_avg_1mens
+        context['user_with_highest_avg_2mens'] = user_with_highest_avg_2mens
+        context['user_with_highest_avg_desc'] = user_with_highest_avg_desc
+
+        return context

@@ -38,7 +38,7 @@ urlpatterns = [
     
     #UpdateView
     path('<int:id>/', MatriculasUpdateView.as_view(), name='matriculas_update'),
-    #path('consultores/<int:id>', ConsultorUpdateView.as_view(), name='consultor_update'),
+    #path('consultores/<int:id>', UserUpdateView.as_view(), name='consultor_update'),
     path('consultores/<int:id>', UserUpdateView.as_view(), name='user_update'),
     path('campanhas/<int:id>', CampanhaUpdateView.as_view(), name='campanha_update'),
     path('curso/<int:id>', CursoUpdateView.as_view(), name='curso_update'),
@@ -63,6 +63,7 @@ urlpatterns = [
     path('relatorios/', MatriculasFullListView.as_view(), name='matriculas_full_list'),
     path('relatorios-dia/', RelatorioDia.as_view(), name='relatorio_dia'),
     path('relatorios-financeiro/', RelatorioFinanceiro.as_view(), name='relatorio_financeiro'),
+    path('relatorios-spacepoint/', RelatorioSpace.as_view(), name='relatorio_spacepoint'),
   
     
     

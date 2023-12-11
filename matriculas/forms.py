@@ -7,7 +7,7 @@ from datetime import datetime
 from django.forms.widgets import ClearableFileInput
 from dal import autocomplete
 from django.http import JsonResponse
-
+from django.utils import timezone
 
 
 class DateInput(forms.DateInput):
@@ -272,7 +272,23 @@ class ProcessoForm(forms.ModelForm):
             'data_final_processo',
             'ativo',
         )
+ 
+class RelatorioSpaceForm(forms.Form):
+    processo = forms.ModelChoiceField(
+        queryset=cad_processo.objects.all(),
+        label='Selecione o Processo',
+        to_field_name='id',  # Necessário para garantir que o valor do campo seja o ID do processo
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Personaliza a representação do objeto no campo de seleção
+        self.fields['processo'].label_from_instance = lambda obj: f"{obj.numero_processo} / {obj.ano_processo}"
     
-class DateRangeForm(forms.Form):
+class DateRangeForm(forms.Form): #usado no relatorio financeiro
     data_inicial = forms.DateField(label='Data Inicial', widget=forms.DateInput(attrs={'type': 'date'}))
     data_final = forms.DateField(label='Data Final', widget=forms.DateInput(attrs={'type': 'date'}))
+    
+    
+class DateSelectForm(forms.Form): #Usado no movimento diario
+    selected_date = forms.DateField(widget=DateInput(attrs={'type': 'date'}), initial=timezone.now().date(), required=False, label="")

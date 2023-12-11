@@ -1,8 +1,11 @@
 from typing import Any
 from django.db import models
-from django.db.models.query import QuerySet
-from django.db.models.aggregates import Count, Sum, Avg
-from django.forms.models import BaseModelForm
+from django.db.models import Count, Sum, Min, Max
+#from django.db.models.functions import Coalesce
+#from django.db.models.query import QuerySet
+from django.db.models.aggregates import Count, Sum 
+#from django.db.models.functions import ExtractMonth
+#from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
@@ -13,32 +16,32 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from datetime import datetime, timedelta
+#from datetime import datetime, timedelta
 from django import forms
-from django.db.models.functions import TruncMonth
+#from django.db.models.functions import TruncMonth
 import os
-from django.http import FileResponse
-from django.contrib.auth.models import Group, Permission
+#from django.http import FileResponse
+from django.contrib.auth.models import Group # Permission
 from django.utils import timezone
-from django.db.models import Case, When, IntegerField, Sum
-from django.core.serializers.json import DjangoJSONEncoder
-import json
-from django.core import serializers
-from decimal import Decimal
+#from django.db.models import Case, When, IntegerField, Sum
+#from django.core.serializers.json import DjangoJSONEncoder
+#import json
+#from django.core import serializers
+#from decimal import Decimal
+#from collections import defaultdict
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
+from django.shortcuts import render
+#from .models import User, Matriculas, tipo_curso, cad_campanhas
 
 
 
-#LIST VIEWS ######################################################
-# 
+####################### LIST VIEWS ######################################################
 def lista_processos(request):
     # Filtra os processos ativos
     processos_ativos = cad_processo.objects.filter(ativo=True)
     # Passa a lista filtrada para o template
     return render (request, 'matriculas/processo_ativo.html', {'processos': processos_ativos})  
-
-
-
-
 class MatriculasListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/matriculas_list.html'
     login_url = 'login'
@@ -99,9 +102,6 @@ class UserListView(LoginRequiredMixin, ListView):
         context['cargos'] = {profile.user_id: profile.cargo for profile in user_profiles}
 
         return context
-    
-    
-
 
 class CampanhaListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/campanha_list.html'
@@ -129,11 +129,7 @@ class ProcessoListView(LoginRequiredMixin, ListView):
     queryset = cad_processo.objects.all()
 
 
-    
-
-
-
-#NEW VIEWS ######################################################
+################  NEW VIEWS ######################################################
 
 class MatriculasNewView(LoginRequiredMixin,CreateView):  # Criar novo registro
     template_name = 'matriculas/matriculas_new.html'
@@ -189,7 +185,6 @@ class UserNewView(LoginRequiredMixin, CreateView):
             usuario_group, created = Group.objects.get_or_create(name='UsuarioGroup')
             user_instance.groups.add(usuario_group)
 
-
         if selected_polo:
             user_profile = UserProfile.objects.create(user=user_instance, polo=selected_polo, cargo=selected_cargo)
             user_profile.save()
@@ -199,10 +194,7 @@ class UserNewView(LoginRequiredMixin, CreateView):
     def get_success_url(self) -> str:
         return reverse('matriculas:user_list')
 
-
-
-
-    
+   
 class PoloNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/polo_new.html'
     form_class = PoloForm
@@ -257,7 +249,7 @@ class ProcessoNewView(LoginRequiredMixin, CreateView):
 
     
     
-#UPDATE VIEWS ######################################################
+####################### UPDATE VIEWS ######################################################
     
 class MatriculasUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/matriculas_update.html'
@@ -286,7 +278,7 @@ class MatriculasUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class UserUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = 'matriculas/consultor_new.html'
+    template_name = 'matriculas/user_new.html'
     form_class = UserForm
     
     def get_object(self):
@@ -299,19 +291,6 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('matriculas:user_list')
     
-# class ConsultorUpdateView(LoginRequiredMixin, UpdateView):
-#     template_name = 'matriculas/consultor_new.html'
-#     form_class = ConsultorForm
-    
-#     def get_object(self):
-#         id = self.kwargs.get('id')
-#         return get_object_or_404(Consultor, id=id)  # Retorna o objeto consultor a partir do id
-    
-#     def form_valid(self, form):
-#         return super().form_valid(form)
-    
-#     def get_success_url(self):
-#         return reverse('matriculas:consultor_list')
     
 class CampanhaUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'matriculas/campanha_new.html'
@@ -504,59 +483,9 @@ class ProcessoDeleteView(LoginRequiredMixin, DeleteView):
 
 ## Consultas
 
-        
+   
 
-""" def RankView(request):     #Funcional caso não funcione retornar
-    context = {}
-    context['usuarios'] = User.objects.all()
-    
-    context['contagem_matriculas'] = []
-    for usuario in context['usuarios']:
-        contagem = Matriculas.objects.filter(usuario=usuario).count()
-        
-        soma_pontos = tipo_curso.objects.filter(matriculas__usuario=usuario).aggregate(soma_pontos=models.Sum('pontos'))['soma_pontos']
-        
-    # Calcula a data da última matrícula do usuário
-        ultima_matricula = Matriculas.objects.filter(usuario=usuario).order_by('-create_date').first()
-        
-        # Calcula a diferença de dias entre a última matrícula e a data atual
-        if ultima_matricula:
-            agora = datetime.now(ultima_matricula.create_date.tzinfo)
-            dias_sem_matricula = (agora - ultima_matricula.create_date).days
-        else:
-            dias_sem_matricula = None
-            
-        
-        # Adiciona um novo campo 'cor' ao dicionário
-        if dias_sem_matricula is not None:
-            if dias_sem_matricula <= 1:
-                cor = 'verde'
-            elif dias_sem_matricula <= 3:
-                cor = 'amarela'
-            else:
-                cor = 'vermelha'
-        else:
-            cor = 'nunca'
-            
-        context['contagem_matriculas'].append({
-            'usuario': usuario.username, 
-            'contagem': contagem,
-            'soma_pontos': soma_pontos if soma_pontos is not None else 0, # Garante que a soma seja 0 se não houver pontos
-            'dias_sem_matricula': dias_sem_matricula,
-            'cor': cor })  
-        
-        # Ordena a lista de dicionários com base na chave 'contagem'
-        context['contagem_matriculas'].sort(key=lambda x: x['contagem'], reverse=True)        
 
-        # Antes de renderizar o template, adicione o número total de linhas ao contexto
-        context['num_linhas'] = range(1, len(context['contagem_matriculas']) + 1)
-
-    return render(request, 'matriculas/consulta.html', context)
- """
-
-from datetime import datetime
-from django.shortcuts import render
-from .models import User, Matriculas, tipo_curso, cad_campanhas
 
 def RankView(request):
     context = {}
@@ -631,7 +560,7 @@ class MatriculasFullListView(ListView):#TODO: Ajustar para quando exlcuir um reg
         
         queryset = queryset.order_by('-data_matricula')
 
-        return queryset
+        return queryset #TODO: Quando edita como administrador assume a matricula - retirar edição ou corrigir ( colocar campos do usuário dono)
     
     
 class RelatorioDia(LoginRequiredMixin, ListView):
@@ -642,9 +571,16 @@ class RelatorioDia(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Total de Matrículas do Dia
+         # Processar os dados do formulário
+        form = DateSelectForm(self.request.GET)
+        if form.is_valid():
+            selected_date = form.cleaned_data['selected_date']
+        else:
+            selected_date = timezone.now().date()
+            
+         # Total de Matrículas do Dia
         total_matriculas_dia = Matriculas.objects.filter(
-            data_matricula__date=timezone.now().date()
+            data_matricula__date=selected_date
         ).count()
         context['total_matriculas_dia'] = total_matriculas_dia
 
@@ -656,7 +592,7 @@ class RelatorioDia(LoginRequiredMixin, ListView):
         for polo in context['polos']:
             matriculas_por_polo[polo.id] = Matriculas.objects.filter(
                 usuario__userprofile__polo=polo,
-                data_matricula__date=timezone.now().date()
+                data_matricula__date=selected_date
             ).aggregate(total=Count('id'))['total']
 
         context['matriculas_por_polo'] = matriculas_por_polo
@@ -664,7 +600,7 @@ class RelatorioDia(LoginRequiredMixin, ListView):
         # Total de Matrículas por Usuário
         matriculas_por_usuario = (
             Matriculas.objects
-            .filter(data_matricula__date=timezone.now().date())
+            .filter(data_matricula__date=selected_date)
             .values('usuario__username')  # Substitua 'usuario__username' pelo nome real do campo que representa o usuário em Matriculas
             .annotate(total=Count('id'))
         )
@@ -674,17 +610,17 @@ class RelatorioDia(LoginRequiredMixin, ListView):
         # Total de Matrículas por Usuário com informação do Polo
         matriculas_por_usuario_com_polo = (
             Matriculas.objects
-            .filter(data_matricula__date=timezone.now().date())
+            .filter(data_matricula__date=selected_date)
             .values('usuario__userprofile__polo__nome')  
             # Substitua 'usuario__username' e 'usuario__userprofile__polo__nome' pelos nomes reais dos campos
             .annotate(total=Count('id'))
         )
         context['matriculas_por_usuario_com_polo'] = matriculas_por_usuario_com_polo
-             
+        context['date_select_form'] = form     
         
         return context 
 
-class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView):
+class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView): #TODO - colocar R$ nos valores da tabela
     template_name = 'matriculas/relatorio_financeiro.html'
     paginate_by = 10
     model = Matriculas
@@ -776,3 +712,142 @@ class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView):
         context['user_with_highest_avg_desc'] = user_with_highest_avg_desc
 
         return context
+ 
+
+
+#TODO: COnferir o paginate to das as htmls
+
+#TODO: Usuários - inserir botão para editar e excluir - ajustar cabeçaçho para padrão com retangulo azul
+#TODO: POLOS - AJUSTAR CABEÇALHO COM RETANGULO AZUL
+#TODO: POLOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUERDA DA TABELA
+#TODO: CURSOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
+#TODO: TIPO CURSOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
+#TODO: CAMPANHAS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
+#TODO: PROCESSOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
+#TODO: RELATORIOS MATRICULAS - RETIRAR O BOTÃO DE EDICAO - TROCAR LOGO DO FORCA AZUL
+#TODO: RELATORIOS FINANCEIRO- AJUSTAR NOMES DAS COLUNAS ( VER COM BETO)
+
+#TODO: GERAL : INCLUIR SPACEPOINT NO RESUMO MENSAL ( ANTES FAZER PUSH DAS ATUALIZACOES ANTERIORES)
+
+
+class RelatorioSpace(LoginRequiredMixin, ListView):
+    template_name = 'matriculas/relatorio_spacepoint.html'
+    model = Matriculas
+    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Alteração: Obtém todas as opções de processo disponíveis
+        context['processos_disponiveis'] = cad_processo.objects.all()
+
+        # Obtém o número do processo e ano selecionado a partir dos parâmetros GET
+        filtro_processo_ano = self.request.GET.get('filtro_processo_ano', None)
+
+        # Inicializa as datas de início e fim do processo
+        data_inicial_processo = datetime.now().date()
+        data_final_processo = datetime.now().date()
+        
+        # Alteração: Obtém as datas do último processo cadastrado
+        ultimo_processo = cad_processo.objects.order_by('-data_final_processo').first()
+        if ultimo_processo:
+            data_inicial_processo = ultimo_processo.data_inicial_processo
+            data_final_processo = ultimo_processo.data_final_processo
+
+        
+        # Se filtro_processo_ano não estiver definido, incluir tanto processos ativos quanto inativos
+        if not filtro_processo_ano:
+            processos = cad_processo.objects.all()
+            data_inicial_processo = processos.aggregate(Min('data_inicial_processo'))['data_inicial_processo__min']
+            data_final_processo = processos.aggregate(Max('data_final_processo'))['data_final_processo__max']
+        else:
+            numero_processo, ano_processo = filtro_processo_ano.split('/')
+            processo = cad_processo.objects.get(numero_processo=numero_processo, ano_processo=ano_processo)
+
+            # Obtém as datas de início e fim do processo
+            data_inicial_processo = processo.data_inicial_processo
+            data_final_processo = processo.data_final_processo
+
+        
+        
+        
+        
+        
+        # # Filtra as matrículas dentro do período de todos os processos
+        # queryset = Matriculas.objects.filter(
+        #     processo_sel__in=processos,
+        #     data_matricula__range=[data_inicial_processo, data_final_processo]
+        # )
+
+        # Atualiza o dicionário de contexto com os processos e datas
+        context['processos'] = cad_processo.objects.all()
+        
+        context['data_inicial_processo'] = data_inicial_processo
+        context['data_final_processo'] = data_final_processo
+        context['filtro_processo_ano'] = filtro_processo_ano
+        
+        context['exibir_resultados'] = 'filtro_processo_ano' in self.request.GET
+
+        # Obtém a lista de usuários e as matrículas para cada usuário no período selecionado
+        usuarios = User.objects.filter(
+            matriculas__processo_sel__in=context['processos'],
+            matriculas__data_matricula__range=[data_inicial_processo, data_final_processo]
+        ).distinct()
+
+        total_matriculas_por_usuario = []
+        for usuario in usuarios:
+            matriculas_usuario = Matriculas.objects.filter(
+                usuario=usuario,
+                processo_sel__in=context['processos'],
+                data_matricula__range=[data_inicial_processo, data_final_processo]
+            )
+            total_matriculas = matriculas_usuario.count()
+            # Dicionário para armazenar o total de matrículas por mês
+            total_matriculas_por_mes = {}
+
+            # Iterar sobre todos os meses no período do processo seletivo
+            current_date = data_inicial_processo
+            while current_date <= data_final_processo:
+                total_matriculas_por_mes[current_date.strftime('%Y-%m')] = matriculas_usuario.filter(
+                    data_matricula__year=current_date.year,
+                    data_matricula__month=current_date.month
+                ).count()
+
+                current_date += relativedelta(months=1)
+
+            total_matriculas_por_usuario.append({
+                'usuario': usuario,
+                'total_matriculas': total_matriculas,
+                'total_matriculas_por_mes': total_matriculas_por_mes,
+            })
+
+        context['total_matriculas_por_usuario'] = total_matriculas_por_usuario
+        context['meses_entre_datas'] = self.get_month_range(data_inicial_processo, data_final_processo)
+        
+        return context
+
+    def get_month_range(self, start_date, end_date):
+        current_date = start_date.date()  # Convertendo para date
+        end_date = end_date.date()  # Convertendo para date
+        while current_date <= end_date:
+            yield current_date
+            # Adiciona um mês
+            if current_date.month == 12:
+                current_date = date(current_date.year + 1, 1, 1)
+            else:
+                current_date = date(current_date.year, current_date.month + 1, 1)
+
+    def get_queryset(self):
+            # Obtém o objeto cad_processo selecionado no formulário
+            filtro_processo_ano = self.request.GET.get('filtro_processo_ano')
+
+            # Filtra as matrículas com base nas informações selecionadas
+            queryset = Matriculas.objects.all()
+            if filtro_processo_ano:
+                numero_processo, ano_processo = filtro_processo_ano.split('/')
+                processo = cad_processo.objects.get(numero_processo=numero_processo, ano_processo=ano_processo)
+                data_inicial = processo.data_inicial_processo
+                data_final = processo.data_final_processo
+                queryset = queryset.filter(processo_sel__id=processo.id, data_matricula__range=(data_inicial, data_final))
+
+            return queryset

@@ -3,45 +3,21 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.db.models import Count
 from smart_selects.db_fields import ChainedForeignKey
+from django.db.models.functions import ExtractMonth
+from datetime import timedelta, date
 
 
 
 # Create your models here.
-
-
-
-# class Consultor(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     first_name = models.CharField(max_length=30)
-#     last_name = models.CharField(max_length=50)
-#     email = models.EmailField()
-#     birth_date = models.DateField()
-#     area_code = models.CharField(max_length=2)
-#     phone_number = models.CharField(max_length=9)
-#     create_date = models.DateTimeField(auto_now_add=True)
-#     update_date = models.DateTimeField(auto_now=True)
-#     active = models.BooleanField(default=True)
-    
-#     class Meta:
-#         db_table = 'consultor'
-        
-#     def __str__(self):
-#         return f"{self.first_name} {self.last_name}"  
-#     def get_full_name(self):
-#         return f"{self.first_name} {self.last_name}"
-#     def get_data_nascimento(self):
-#         return self.birth_date.strftime('%d/%m/%Y')
-#     def get_data_create(self):
-#         return self.create_date.strftime('%d/%m/%Y')
-#     def get_data_update(self):
-#         return self.update_date.strftime('%d/%m/%Y')
-#     def get_full_phone(self):
-#         return f"({self.area_code}) {self.phone_number}"
-#     def get_absolute_url(self):
-#         return reverse("matriculas:user_update", kwargs={'id': self.id}) #Direciona para a url de edição
-    
-#     def get_delete_url(self):
-#         return reverse("matriculas:consultor_delete", kwargs={'id': self.id})# Exclui o resgistro
+def get_month_range(start_date, end_date):
+    current_date = start_date
+    while current_date <= end_date:
+        yield current_date
+        # Adiciona um mês
+        if current_date.month == 12:
+            current_date = date(current_date.year + 1, 1, 1)
+        else:
+            current_date = date(current_date.year, current_date.month + 1, 1)
 
 
 class cad_polos(models.Model):
@@ -192,7 +168,10 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
     
+    def get_full_name(self):
+        return f"{self.user.first_name} {self.user.last_name}"
     
+   
 
 class cad_processo(models.Model):
     
@@ -215,7 +194,9 @@ class cad_processo(models.Model):
         return reverse("matriculas:processo_update", kwargs={'id': self.id}) #Direciona para a url de edição
     def get_delete_url(self):
         return reverse("matriculas:processo_delete", kwargs={'id': self.id})# Exclui o resgistro
-
+    def get_month_range(self):
+        return get_month_range(self.data_inicial_processo, self.data_final_processo)
+    
     
 class Matriculas(models.Model):
     id = models.AutoField(primary_key=True)
@@ -233,7 +214,7 @@ class Matriculas(models.Model):
     update_date = models.DateTimeField(auto_now=True)
     comprovante = models.ImageField(upload_to='comprovantes/', blank=True, null=True)
     active = models.BooleanField(default=True)
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+    usuario = models.ForeignKey(User, on_delete=models.PROTECT,related_name='matriculas')
     processo_sel = models.ForeignKey(cad_processo, on_delete=models.CASCADE)
     arquivos = models.FileField(upload_to='arquivos_matricula/', blank=True, null=True)
    
@@ -262,3 +243,5 @@ class Matriculas(models.Model):
             self.arquivos.delete()
 
         super().delete(*args, **kwargs)
+
+

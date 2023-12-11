@@ -1,7 +1,22 @@
 {% extends 'model-page.html'%}
+{% load static %}
 
 {% block content %}
-<h1>Usuários</h1>
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+
+  <div class="redenc mb-3 d-flex  align-items-center ">
+    <img src="{% static 'images/virtua_full.svg' %}" alt="Imagem" style="width: auto; height: 80px; margin-right: 10px;">
+    <div class="mx-auto align-items-center">
+      <div class="d-flex mx-auto">
+        <h1>CONSULTORES</h1> 
+      </div>
+        
+    </div>
+      <div class="align-items-right">
+        <img src="{% static 'images/consultor.png' %}" alt="Imagem" style="width: auto; height: 100px; margin-right: 10px;">
+      </div>
+</div>
 
 <a href="{% url 'matriculas:user_new' %}"
     <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px">Novo Usuário</button>
@@ -42,7 +57,10 @@
                   {% else %}
                       Sem perfil de usuário
                   {% endif %}
-              </td>  
+              </td>
+              <td class="text-end align-middle"><a href = "{{ user.get_absolute_url }}"><button type="button" class="btn btn-primary">Editar</button></td>
+                <form method="POST" action="{{ tipo_curso.get_delete_url }}">{% csrf_token %}
+                  <td class="text-end align-middle"><button type="submit" class="btn btn-danger">Excluir</button></td>  
             </tr>
         {% endfor %}
     </tbody>

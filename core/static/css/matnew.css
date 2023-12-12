@@ -3,3 +3,18 @@
     width: 80%;
     padding: 20px;
     }
+
+.principal{
+    background-color: aquamarine;
+    scale: 0.9;
+    margin: auto;
+    width: 80%;
+    padding: 20px;
+    }
+
+.redenc {
+        background-color: #032244; /* Cor de fundo azul */
+        color: #FFFFFF; /* Cor do texto branca */
+        text-align: center; /* Centraliza o texto */
+        padding: 20px; /* Adiciona algum preenchimento para melhor aparência */
+    }

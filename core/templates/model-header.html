@@ -52,9 +52,10 @@
             </a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="{% url 'matriculas:relatorio_dia' %}">Movimento do Dia</a></li>
-              <li><a class="dropdown-item" href="{% url 'matriculas:relatorio_financeiro' %}">Financeiro</a></li>
-              <li><a class="dropdown-item" href="{% url 'matriculas:matriculas_full_list' %}">Matrículas</a></li>
-              <li><a class="dropdown-item" href="{% url 'matriculas:relatorio_spacepoint' %}">Mensal</a></li>
+              <li><a class="dropdown-item" href="{% url 'matriculas:relatorio_financeiro' %}">Desempenho x Consultor</a></li>
+              <li><a class="dropdown-item" href="{% url 'matriculas:matriculas_full_list' %}">Matrículas x Consultor</a></li>
+              <li><a class="dropdown-item" href="{% url 'matriculas:relatorio_spacepoint' %}">Resumo Mensal X Consultor</a></li>
+              <li><a class="dropdown-item" href="{% url 'matriculas:relatorio_campanha' %}">Campanha X Consultor</a></li>
             </ul>
         {% endif %}
         </li>

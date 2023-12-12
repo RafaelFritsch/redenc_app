@@ -8,7 +8,7 @@
 
 
   <div class="redenc mb-3 d-flex  align-items-center ">
-    <img src="{% static 'images/fraseforca.png' %}" alt="Imagem" style="width: auto; height: 60px; margin-right: 10px;">
+    <img src="{% static 'images/virtua_full.svg' %}" alt="Imagem" style="width: auto; height: 80px; margin-right: 10px;">
     <div class="mx-auto align-items-center">
       
       <div class="d-flex mx-auto">
@@ -18,21 +18,43 @@
               <label for="data_inicial" class="form-label">Data Inicial:</label>
               <input class="form-control" type="date" name="data_inicial" id="data_inicial">
             </div>
-            <div class="p-3 flex-grow-1 r">
+            <div class="p-3 flex-grow-1">
               <label for="data_final" class="form-label">Data Final:</label>
               <input class="form-control" type="date" name="data_final" id="data_final">
+            </div>
+            <div class="p-3 flex-grow-1">
+              <label class="form-label" for="usuario">Consultor(a):</label>
+                <select class="form-select"  name="usuario" id="usuario">
+                   <option  value="">Todos</option>
+                    {% for user in usuarios %}
+                      <option  value="{{ user.id }}">{{ user.username }}</option>
+                    {% endfor %}
+                  </select>
             </div>
             <div class="p-3 ">
               <button type="submit" class="btn btn-primary">Buscar</button>
             </div>  
           </div>
         </form>
-      </div>
 
+      </div>
+      <div class="d-flex mx-auto justify-content-center">
+        {% if data_inicial %}
+        <div><h3>{{ data_inicial|date:"d/m/Y" }}</h3></div>  
+        {% endif %}
+        {% if data_final %}
+        <div class="ms-3"><h3>até</h3></div> 
+        <div class="ms-3"><h3>{{ data_final|date:"d/m/Y" }}</h3></div>
+        {% endif %}
+        {% if usuario_id %}
+        <div class="ms-3"><h3>{{ usuario_first_name }} {{ usuario_last_name }}</h3></div>
+        {% endif %}
+      </div>
     </div>
     <div class="align-items-right">
-      <img src="{% static 'images/foguete2.png' %}" alt="Imagem" style="width: auto; height: 100px; margin-right: 10px;">
+      <img src="{% static 'images/branco.svg' %}" alt="" style="width: auto; height: 80px; margin-right: 10px;">
     </div>
+
   </div>
 
 
@@ -61,7 +83,7 @@
           <th class="text-center text-sm bg-secondary align-middle align-items-center">R$ 1º MENS.</th>
           <th class="text-center text-sm bg-secondary align-middle align-items-center">R$ 2º MENS.</th>
           <th class="text-center text-sm bg-secondary align-middle align-items-center">% BOLSA</th>
-          <th class="text-center text-sm bg-secondary align-middle align-items-center">Usuário</th>
+          <th class="text-center text-sm bg-secondary align-middle align-items-center">Consultor</th>
           <th class="bg-secondary"></th>
 
         </tr>
@@ -81,9 +103,9 @@
             <td class="text-center w-11 align-middle align-items-center">{{matriculas.usuario.username }}</td>
             <td class="text-center w-11">
               <div class="d-flex justify-content-center align-items-center">
-                <a href = "{{ matriculas.get_absolute_url }}">
+                <!-- <a href = "{{ matriculas.get_absolute_url }}">
                   <img src="{% static 'images/edit.png' %}" alt="EDITAR" style="width: 24px; height: auto;">
-                </a>
+                </a>  Libera a edição da matricula / o Editor assume a propriedade da matricula-->
               
                 <form id="formExclusao" method="POST" action="{{ matriculas.get_delete_url }}">
                   {% csrf_token %}

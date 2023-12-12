@@ -1,12 +1,37 @@
 {% extends 'model-page.html'%}
+{% load static %}
 
 {% block content %}
-<h1>Cadastro de Processos</h1>
-<a href="{% url 'matriculas:processo_new' %}"
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+
+<div class="redenc mb-3 d-flex align-items-center text-center justify-content-between">
+  <img src="{% static 'images/virtua_full.svg' %}" alt="Imagem" style="width: auto; height: 80px; margin-right: 10px;">
+  <div class="mx-auto">
+      <div class="d-flex">
+          <h1>PROCESSOS</h1> 
+      </div>
+  </div>
+  <img src="{% static 'images/branco.svg' %}" alt="" style="width: auto; height: 80px; margin-right: 10px;">
+</div>
+
+<form method="GET" action="">
+  <div class="d-flex align-items-center">
+      <div class="p-2 flex-grow-1">
+          <input class="form-control" type="text" name="name" value="{{ search_query }}" placeholder="Buscar por numero ...">
+      </div>
+      <div class="p2">
+          <button type="submit" class="btn btn-primary">Buscar</button>
+      </div>
+  </div>
+</form>
+<div class="pt-4">
+  <a href="{% url 'matriculas:processo_new' %}"
     <button type="button" class="btn btn-success" style="float: right; margin-bottom: 10px">Novo Processo</button>
   </a>
+</div>
 
-<table class="table table table-striped">
+<table class="table table table-striped table-hover">
     <thead>
         <tr>
           <th class="text-start align-middle">Numero</th>

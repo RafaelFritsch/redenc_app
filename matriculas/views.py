@@ -1,11 +1,7 @@
 from typing import Any
 from django.db import models
-from django.db.models import Count, Sum, Min, Max
-#from django.db.models.functions import Coalesce
-#from django.db.models.query import QuerySet
+from django.db.models import Count, Sum, Min, Max, Q, Subquery, OuterRef
 from django.db.models.aggregates import Count, Sum 
-#from django.db.models.functions import ExtractMonth
-#from django.forms.models import BaseModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
@@ -16,23 +12,15 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-#from datetime import datetime, timedelta
 from django import forms
-#from django.db.models.functions import TruncMonth
 import os
-#from django.http import FileResponse
-from django.contrib.auth.models import Group # Permission
+from django.contrib.auth.models import Group
 from django.utils import timezone
-#from django.db.models import Case, When, IntegerField, Sum
-#from django.core.serializers.json import DjangoJSONEncoder
-#import json
-#from django.core import serializers
-#from decimal import Decimal
-#from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 from django.shortcuts import render
-#from .models import User, Matriculas, tipo_curso, cad_campanhas
+from django.urls import reverse_lazy
+from django.views.generic import RedirectView
 
 
 
@@ -42,6 +30,7 @@ def lista_processos(request):
     processos_ativos = cad_processo.objects.filter(ativo=True)
     # Passa a lista filtrada para o template
     return render (request, 'matriculas/processo_ativo.html', {'processos': processos_ativos})  
+
 class MatriculasListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/matriculas_list.html'
     login_url = 'login'
@@ -90,7 +79,20 @@ class UserListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/user_list.html'
     model = User
     queryset = User.objects.all()
-    
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_term = self.request.GET.get('name', None)
+
+        if search_term:
+            # Filtra por nome do usuário
+            queryset = queryset.filter(
+                Q(first_name__icontains=search_term) | Q(last_name__icontains=search_term) |
+                Q(username__icontains=search_term) | Q(email__icontains=search_term)
+            )
+
+        return queryset
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -107,26 +109,85 @@ class CampanhaListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/campanha_list.html'
     model = cad_campanhas
     queryset = cad_campanhas.objects.all()
+    paginate_by = 10
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('name', '')
+
+        if search_query:
+            # Filtra curso com base no nome
+            queryset = queryset.filter(nome__icontains=search_query)
+
+        return queryset
 
 class CursoListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/curso_list.html'
     model = cad_cursos
     queryset = cad_cursos.objects.all()
+    paginate_by = 10
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('name', '')
+
+        if search_query:
+            # Filtra curso com base no nome
+            queryset = queryset.filter(nome__icontains=search_query)
+
+        return queryset
     
 class PoloListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/polo_list.html'
     model = cad_polos
     queryset = cad_polos.objects.all()
+    paginate_by = 10
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('name', '')
+
+        if search_query:
+            # Filtra polos com base no nome
+            queryset = queryset.filter(nome__icontains=search_query)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Adiciona a query de busca ao contexto
+        context['search_query'] = self.request.GET.get('name', '')
+
+        return context
     
 class TipoCursoListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/tipo_curso_list.html'
     model = tipo_curso
     queryset = tipo_curso.objects.all()
+    paginate_by = 10
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('name', '')
+
+        if search_query:
+            # Filtra curso com base no nome
+            queryset = queryset.filter(nome__icontains=search_query)
+
+        return queryset
     
 class ProcessoListView(LoginRequiredMixin, ListView):
     template_name = 'matriculas/processo_list.html'
     model = cad_processo
     queryset = cad_processo.objects.all()
+    paginate_by = 20
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('name', '')
+
+        if search_query:
+            # Filtra processo com base no número ou ano
+            queryset = queryset.filter(numero_processo__icontains=search_query) | queryset.filter(ano_processo__icontains=search_query)
+
+        return queryset
 
 
 ################  NEW VIEWS ######################################################
@@ -194,7 +255,21 @@ class UserNewView(LoginRequiredMixin, CreateView):
     def get_success_url(self) -> str:
         return reverse('matriculas:user_list')
 
-   
+class UserActivateView(View):
+    def get(self, request, id):
+        user = get_object_or_404(User, id=id)
+        user.is_active = True
+        user.save()
+        return RedirectView.as_view(url=reverse_lazy('matriculas:user_list'))(request)
+
+class UserDeactivateView(View):
+    def get(self, request, id):
+        user = get_object_or_404(User, id=id)
+        user.is_active = False
+        user.save()
+        return RedirectView.as_view(url=reverse_lazy('matriculas:user_list'))(request)
+
+
 class PoloNewView(LoginRequiredMixin, CreateView):
     template_name = 'matriculas/polo_new.html'
     form_class = PoloForm
@@ -278,18 +353,12 @@ class MatriculasUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class UserUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = 'matriculas/user_new.html'
+    template_name = 'matriculas/user_update.html'
     form_class = UserForm
-    
-    def get_object(self):
-        id = self.kwargs.get('id')
-        return get_object_or_404(User, id=id)  # Retorna o objeto consultor a partir do id
-    
-    def form_valid(self, form):
-        return super().form_valid(form)
-    
+    model = UserProfile
+
     def get_success_url(self):
-        return reverse('matriculas:user_list')
+        return reverse_lazy('matriculas:user_list')
     
     
 class CampanhaUpdateView(LoginRequiredMixin, UpdateView):
@@ -397,48 +466,14 @@ class MatriculasDeleteView(LoginRequiredMixin, DeleteView):
         # Retorna a URL de sucesso
         return response
 
-
-
-
-
-
-
-# class MatriculasDeleteView(DeleteView):
-#     def get_object(self):
-#         id = self.kwargs.get('id')
-#         return get_object_or_404(Matriculas, id=id)
+class UserDeleteView(LoginRequiredMixin, DeleteView):
+    def get_object(self):
+        id = self.kwargs.get('id')
+        return get_object_or_404(UserProfile, id=id)
     
-#     def get_success_url(self):
-#         return reverse('matriculas:matriculas_list') 
-    
-#     def delete(self, request, *args, **kwargs):
-#         # Chama o método get_success_url antes de excluir o objeto
-#         success_url = self.get_success_url()
-
-#         # Obtém a instância da matrícula
-#         matricula = self.get_object()
-
-#         # Verifica se o arquivo deve ser excluído
-#         excluir_arquivo = request.POST.get('excluir_arquivo')
-#         if excluir_arquivo == 'True' and matricula.comprovante:
-#             matricula.comprovante.delete()
-
-#         # Chama o método delete da superclasse
-#         response = super().delete(request, *args, **kwargs)
-
-#         # Retorna a URL de sucesso
-#         return response
-
-
-# class ConsultorDeleteView(LoginRequiredMixin, DeleteView):
-#     def get_object(self):
-#         id = self.kwargs.get('id')
-#         return get_object_or_404(Consultor, id=id)
-    
-#     def get_success_url(self):
-#         return reverse('matriculas:consultor_list')
-    
-    
+    def get_success_url(self):
+        return reverse('matriculas:user_list')
+   
 class CampanhaDeleteView(LoginRequiredMixin, DeleteView):
     def get_object(self):
         id = self.kwargs.get('id')
@@ -481,10 +516,7 @@ class ProcessoDeleteView(LoginRequiredMixin, DeleteView):
         return reverse('matriculas:processo_list')
 
 
-## Consultas
-
-   
-
+## Consultas ######################################################################################
 
 
 def RankView(request):
@@ -536,10 +568,10 @@ def RankView(request):
 
     return render(request, 'matriculas/consulta.html', context)
 
-
-class MatriculasFullListView(ListView):#TODO: Ajustar para quando exlcuir um registro voltar para a mesma página
+#TODO: Ajustar para quando exlcuir um registro voltar para a mesma página
+class MatriculasFullListView(ListView):
     template_name = 'matriculas/matriculas_full_list.html'
-    paginate_by = 10
+    paginate_by = 15
     model = Matriculas
     queryset = Matriculas.objects.all()
 
@@ -548,19 +580,57 @@ class MatriculasFullListView(ListView):#TODO: Ajustar para quando exlcuir um reg
 
         # Filtrar por data inicial
         data_inicial = self.request.GET.get('data_inicial')
-        if data_inicial:
+        if not data_inicial:
+            data_inicial = datetime.now().date()
+        else:
             data_inicial = datetime.strptime(data_inicial, '%Y-%m-%d').date()
-            queryset = queryset.filter(data_matricula__gte=data_inicial)
+        queryset = queryset.filter(data_matricula__gte=data_inicial)
 
-        # Filtrar por data final
+        # Filtrar por data final (usando a data atual se não fornecida)
         data_final = self.request.GET.get('data_final')
-        if data_final:
+        if not data_final:
+            data_final = datetime.now().date()
+        else:
             data_final = datetime.strptime(data_final, '%Y-%m-%d').date()
-            queryset = queryset.filter(data_matricula__lte=data_final)
-        
+        queryset = queryset.filter(data_matricula__lte=data_final)
+
+        # Filtrar por usuário (todos se não fornecido)
+        usuario_id = self.request.GET.get('usuario')
+        if usuario_id:
+            queryset = queryset.filter(usuario_id=usuario_id)
+
+        # Salvar os valores para uso no template
+        self.data_inicial = data_inicial
+        self.data_final = data_final
+        self.usuario_id = usuario_id
+
         queryset = queryset.order_by('-data_matricula')
 
-        return queryset #TODO: Quando edita como administrador assume a matricula - retirar edição ou corrigir ( colocar campos do usuário dono)
+        return queryset 
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Adiciona usuários ao contexto para o campo de seleção
+        context['usuarios'] = User.objects.all()
+        
+        # Adiciona os valores ao contexto
+        context['data_inicial'] = self.data_inicial
+        context['data_final'] = self.data_final
+        context['usuario_id'] = self.usuario_id
+        
+        # Adiciona o first_name e last_name do usuário ao contexto
+        if self.usuario_id:
+            user_obj = User.objects.get(pk=self.usuario_id)
+            context['usuario_first_name'] = user_obj.first_name
+            context['usuario_last_name'] = user_obj.last_name
+        else:
+            context['usuario_first_name'] = "Todos"
+            context['usuario_last_name'] = ""
+
+        return context
+    
+    
     
     
 class RelatorioDia(LoginRequiredMixin, ListView):
@@ -620,7 +690,7 @@ class RelatorioDia(LoginRequiredMixin, ListView):
         
         return context 
 
-class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView): #TODO - colocar R$ nos valores da tabela
+class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView): 
     template_name = 'matriculas/relatorio_financeiro.html'
     paginate_by = 10
     model = Matriculas
@@ -668,11 +738,6 @@ class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView): #TODO - coloca
                     avg_valor_mensalidade = total_valor_mensalidade / total_matriculas if total_matriculas else 0
                     avg_desconto_polo = total_desconto_polo / total_matriculas if total_matriculas else 0
                     avg_desconto_total = total_desconto_total / total_matriculas if total_matriculas else 0
-                    
-                    # Encontrar o usuário com a média mais alta
-                    # user_with_highest_avg_1mens = max(user_data, key=lambda user: user['avg_valor_mensalidade'])
-                    # user_with_highest_avg_2mens = max(user_data, key=lambda user: user['avg_desconto_polo'])
-                    # user_with_highest_avg_desc = min(user_data, key=lambda user: user['avg_desconto_total'])
 
                     # Adiciona os dados do usuário e totais ao contexto
                     user_data.append({
@@ -717,16 +782,6 @@ class RelatorioFinanceiro(LoginRequiredMixin,FormView, ListView): #TODO - coloca
 
 #TODO: COnferir o paginate to das as htmls
 
-#TODO: Usuários - inserir botão para editar e excluir - ajustar cabeçaçho para padrão com retangulo azul
-#TODO: POLOS - AJUSTAR CABEÇALHO COM RETANGULO AZUL
-#TODO: POLOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUERDA DA TABELA
-#TODO: CURSOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
-#TODO: TIPO CURSOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
-#TODO: CAMPANHAS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
-#TODO: PROCESSOS - TROCAR O TRUE/FALSE PELO TEXTO COM COR ATIVO/INATIVO - ALINHAMENTO A ESQUEDA DA TABELA
-#TODO: RELATORIOS MATRICULAS - RETIRAR O BOTÃO DE EDICAO - TROCAR LOGO DO FORCA AZUL
-#TODO: RELATORIOS FINANCEIRO- AJUSTAR NOMES DAS COLUNAS ( VER COM BETO)
-
 #TODO: GERAL : INCLUIR SPACEPOINT NO RESUMO MENSAL ( ANTES FAZER PUSH DAS ATUALIZACOES ANTERIORES)
 
 
@@ -768,18 +823,6 @@ class RelatorioSpace(LoginRequiredMixin, ListView):
             data_inicial_processo = processo.data_inicial_processo
             data_final_processo = processo.data_final_processo
 
-        
-        
-        
-        
-        
-        # # Filtra as matrículas dentro do período de todos os processos
-        # queryset = Matriculas.objects.filter(
-        #     processo_sel__in=processos,
-        #     data_matricula__range=[data_inicial_processo, data_final_processo]
-        # )
-
-        # Atualiza o dicionário de contexto com os processos e datas
         context['processos'] = cad_processo.objects.all()
         
         context['data_inicial_processo'] = data_inicial_processo
@@ -851,3 +894,117 @@ class RelatorioSpace(LoginRequiredMixin, ListView):
                 queryset = queryset.filter(processo_sel__id=processo.id, data_matricula__range=(data_inicial, data_final))
 
             return queryset
+
+
+class RelatorioCampanha(LoginRequiredMixin, ListView):
+    template_name = 'matriculas/relatorio_campanha.html'
+    model = Matriculas
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Alteração: Obtém todas as campanhas disponíveis
+        context['campanhas_disponiveis'] = cad_campanhas.objects.all()
+
+        # Obtém a campanha selecionada a partir dos parâmetros GET
+        filtro_campanha = self.request.GET.get('filtro_campanha', None)
+        print(f"Filtro Campanha: {filtro_campanha}")
+
+        # Inicializa as datas de início e fim da campanha
+        data_inicio_campanha = datetime.now().date()
+        data_fim_campanha = datetime.now().date()
+
+        # Alteração: Obtém as datas da última campanha cadastrada
+        ultima_campanha = cad_campanhas.objects.order_by('-data_fim').first()
+        if ultima_campanha:
+            data_inicio_campanha = ultima_campanha.data_inicio
+            data_fim_campanha = ultima_campanha.data_fim
+
+        # Se filtro_campanha não estiver definido, incluir tanto campanhas ativas quanto inativas
+        if not filtro_campanha:
+            campanhas = cad_campanhas.objects.all()
+            data_inicio_campanha = campanhas.aggregate(Min('data_inicio'))['data_inicio__min']
+            data_fim_campanha = campanhas.aggregate(Max('data_fim'))['data_fim__max']
+        else:
+            campanha = cad_campanhas.objects.get(id=filtro_campanha)
+            print(f"Campanha Selecionada: {campanha}")
+
+            # Obtém as datas de início e fim da campanha
+            data_inicio_campanha = campanha.data_inicio
+            data_fim_campanha = campanha.data_fim
+
+        context['campanhas'] = cad_campanhas.objects.all()
+
+        context['data_inicio_campanha'] = data_inicio_campanha
+        context['data_fim_campanha'] = data_fim_campanha
+        context['filtro_campanha'] = filtro_campanha
+
+        context['exibir_resultados'] = 'filtro_campanha' in self.request.GET
+        
+        # Obtém a lista de usuários e as matrículas para cada usuário no período selecionado
+        usuarios = User.objects.filter(
+            id__in=Subquery(
+                Matriculas.objects.filter(
+                    campanha__in=context['campanhas_disponiveis'],
+                    data_matricula__range=[data_inicio_campanha, data_fim_campanha],
+                    usuario=OuterRef('id')
+                ).values('usuario')
+    )
+)
+
+        total_matriculas_por_usuario = []
+        for usuario in usuarios:
+            matriculas_usuario = Matriculas.objects.filter(
+                usuario=usuario,
+                campanha__in=context['campanhas_disponiveis'],  #### ERROOO
+                data_matricula__range=[data_inicio_campanha, data_fim_campanha]
+            )
+            total_matriculas = matriculas_usuario.count()
+            # Dicionário para armazenar o total de matrículas por mês
+            total_matriculas_por_mes = {}
+
+            # Iterar sobre todos os meses no período da campanha
+            current_date = data_inicio_campanha
+            while current_date <= data_fim_campanha:
+                total_matriculas_por_mes[current_date.strftime('%Y-%m')] = matriculas_usuario.filter(
+                    data_matricula__year=current_date.year,
+                    data_matricula__month=current_date.month
+                ).count()
+
+                current_date += relativedelta(months=1)
+
+            total_matriculas_por_usuario.append({
+                'usuario': usuario,
+                'total_matriculas': total_matriculas,
+                'total_matriculas_por_mes': total_matriculas_por_mes,
+            })
+
+        context['total_matriculas_por_usuario'] = total_matriculas_por_usuario
+        context['meses_entre_datas'] = self.get_month_range(data_inicio_campanha, data_fim_campanha)
+
+        return context
+
+    def get_month_range(self, start_date, end_date):
+        current_date = start_date.date()  # Convertendo para date
+        end_date = end_date.date()  # Convertendo para date
+        while current_date <= end_date:
+            yield current_date
+            # Adiciona um mês
+            if current_date.month == 12:
+                current_date = date(current_date.year + 1, 1, 1)
+            else:
+                current_date = date(current_date.year, current_date.month + 1, 1)
+
+    def get_queryset(self):
+        # Obtém o ID da campanha selecionada no formulário
+        filtro_campanha = self.request.GET.get('filtro_campanha')
+
+        # Filtra as matrículas com base nas informações selecionadas
+        queryset = Matriculas.objects.all()
+        if filtro_campanha:
+            campanha = cad_campanhas.objects.get(id=filtro_campanha)
+            data_inicio = campanha.data_inicio
+            data_fim = campanha.data_fim
+            queryset = queryset.filter(campanha__id=campanha.id, data_matricula__range=(data_inicio, data_fim))
+
+        return queryset

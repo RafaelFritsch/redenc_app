@@ -1,12 +1,8 @@
 from django import forms
-from django.forms import ModelForm, ModelChoiceField
 from .models import *
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from datetime import datetime
-from django.forms.widgets import ClearableFileInput
-from dal import autocomplete
-from django.http import JsonResponse
 from django.utils import timezone
 
 
@@ -97,37 +93,6 @@ class MatriculasForm(forms.ModelForm):
                 self.fields['curso'].queryset = cad_cursos.objects.filter(tipo_curso_id=instance.tipo_curso.id)
 
 
-        
-# class ConsultorForm(forms.ModelForm):
-#     first_name = forms.CharField()
-#     last_name = forms.CharField()
-#     email = forms.EmailField()
-#     birth_date = forms.DateField(widget=DateInput())
-#     area_code = forms.RegexField(
-#         label='DDD',
-#         regex=r"^\+?1?[0-9]{2}",
-#         error_messages={'invalid': 'DDD inválido.'},
-#     )
-#     phone_number = forms.RegexField(
-#         label='Telefone',
-#         regex=r"^\+?1?[0-9]{8,15}",
-#         error_messages={'invalid': 'Telefone inválido.'},
-        
-#     )
-#     active = forms.BooleanField()
-#     class Meta:
-#         model = Consultor
-#         fields = (
-#             'first_name',
-#             'last_name',
-#             'email',
-#             'birth_date',
-#             'area_code',
-#             'phone_number',
-#             'active',
-#         )
-
-
 ESTADOS_UF = (
     ('AC', 'ACRE'),
     ('AL', 'ALAGOAS'),
@@ -157,8 +122,6 @@ ESTADOS_UF = (
     ('SE', 'SERGIPE'),
     ('TO', 'TOCANTINS')
 )
-
-
 
 
 class PoloForm(forms.ModelForm):

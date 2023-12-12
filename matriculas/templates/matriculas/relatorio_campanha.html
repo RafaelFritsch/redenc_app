@@ -12,26 +12,23 @@
       <img src="{% static 'images/nc_bw.png' %}" alt="Imagem" style="width: 100px; height: auto; margin-right: 10px;">
     </div>
     <div>
-      <h1 class="mb-0">RESUMO MENSAL DE MATRICULAS POR CONSULTOR</h1>
+      <h1 class="mb-0">MATRÍCULAS CONSULTOR x CAMPANHA</h1>
     </div>
     <div>
-        <form method="get" action="{% url 'matriculas:relatorio_spacepoint' %}">
+        <form method="get" action="{% url 'matriculas:relatorio_campanha' %}">
     
             <!-- FORMULARIO PARA ENVIO DE PROCESSO -->
             <div class="form-group d-flex mx-auto justify-content-center">
                 <label for="filtro_processo_ano"></label>
-                <select class="form-select" name="filtro_processo_ano" id="filtro_processo_ano">
-                    <option value="">-- Selecione Processo--</option>
-                    {% for processo in processos %}
-                        <option value="{{ processo.numero_processo }}/{{ processo.ano_processo }}"
-                            {% if request.GET.filtro_processo_ano == processo.numero_processo|stringformat:"s"|stringformat:"s" %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ processo.numero_processo }}/{{ processo.ano_processo }}
+                <select class="form-select" name="filtro_campanha" id="filtro_campanha">
+                    <option value="">-- Selecione Campanha--</option>
+                    {% for campanha in campanhas_disponiveis %}
+                        <option value="{{ campanha.id }}" {% if campanha.id|safe == filtro_campanha %}selected{% endif %}>
+                            {{ campanha.nome }} - {{ campanha.get_data_inicio_camp }} a {{ campanha.get_data_fim_camp }}
                         </option>
                     {% endfor %}
                 </select>
+                
             
                 <button type="submit" class="btn btn-primary ms-3">Filtrar</button>
             </div>
@@ -39,32 +36,6 @@
     </div> 
 </div>
 
-
-
-
-
-<!-- FORMULARIO PARA ENVIO DE PROCESSO -->
-
-
-<!-- <table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Data Matricula</th>
-           
-        </tr>
-    </thead>
-    <tbody>
-        {% for matricula in object_list %}
-            <tr>
-                <td>{{ matricula.get_data_matricula }}</td>
-                <td>{{ matricula.nome_aluno }}</td>
-                <td>{{ matricula.usuario.get_full_name }}</td>
-               
-            </tr>
-        {% endfor %}
-    </tbody>
-</table> 
--->
 
 <!-- Tabela com total de matrículas por usuário -->
 {% if exibir_resultados %}
@@ -79,13 +50,13 @@
         </tr>
     </thead>
     <tbody>
-        {% for item in total_matriculas_por_usuario %}
+        {% for usuario_info in total_matriculas_por_usuario %}
             <tr>
-                <td class="text-start">{{ item.usuario.get_full_name }}</td>
-                {% for mes, total in item.total_matriculas_por_mes.items %}
-                    <td class="text-center">{{ total }}</td>
+                <td class="text-start">{{ usuario_info.usuario.get_full_name }}</td>
+                {% for mes, total_mes in usuario_info.total_matriculas_por_mes.items %}
+                    <td class="text-center">{{ total_mes }}</td>
                 {% endfor %}
-                <td class="text-center">{{ item.total_matriculas }}</td>
+                <td class="text-center">{{ usuario_info.total_matriculas }}</td>
             </tr>
         {% endfor %}
     </tbody>

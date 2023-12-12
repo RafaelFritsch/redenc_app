@@ -57,7 +57,6 @@ class cad_polos(models.Model):
     active = models.BooleanField(default=True)
     users = models.ManyToManyField(User, related_name='polos')
     
-    
     class Meta:
         db_table = 'polos'
         
@@ -170,7 +169,6 @@ class UserProfile(models.Model):
     
     def get_full_name(self):
         return f"{self.user.first_name} {self.user.last_name}"
-    
    
 
 class cad_processo(models.Model):
@@ -243,5 +241,3 @@ class Matriculas(models.Model):
             self.arquivos.delete()
 
         super().delete(*args, **kwargs)
-
-

@@ -1,13 +1,15 @@
 FROM python:3.11.4
 
-WORKDIR .
+RUN pip install --upgrade pip
 
-COPY requirements.txt .
+COPY ./requirements.txt .
 
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY ./REDENC_APP_POSTGRES /app
 
-EXPOSE 8000
+WORKDIR /app
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+COPY ./entrypoint.sh .
+
+ENTRYPOINT ["sh", "/entrypoint.sh"]
